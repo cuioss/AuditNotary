@@ -7,7 +7,7 @@
  */
 import type { Category, Revision } from '../api/types';
 import { daysFrom, parseInstant } from '../format';
-import { formatAddress } from '../routes';
+import { formatAddress, routesUnder } from '../routes';
 
 /** The category of the ISMS, for the texts of the form and the transitions. */
 export const ISMS_CATEGORY = 'isms';
@@ -45,14 +45,15 @@ export const ISMS_DOCUMENTS: Category = {
   kinds: DOCUMENT_KINDS.map((id) => ({ id, repository: DOCUMENTS_REPOSITORY })),
 };
 
-/** The routes this part of the lens draws: the start, the documents, a new one, one, the comparison of two releases. */
-export const DOCUMENT_ROUTES: readonly string[] = [
-  'isms',
-  'isms.documents',
-  'isms.documents.new',
-  'isms.document',
-  'isms.document.compare',
-];
+/**
+ * The routes this part of the lens draws: the start, the documents, a new one, one, the comparison of two releases. They are
+ * derived from the canonical addresses, the routes under `/isms` without the risk register (a lens of its own in the next
+ * part) and without the release of a document (a page of its own), so a canonical document address added later is drawn
+ * without an edit here.
+ */
+export const DOCUMENT_ROUTES: readonly string[] = routesUnder('isms').filter(
+  (route) => !route.startsWith('isms.risk') && route !== 'isms.document.release',
+);
 
 /**
  * @param kind a document type id
@@ -163,14 +164,29 @@ export interface Review {
 }
 
 /**
+ * @param date a date of the shape `YYYY-MM-DD`
+ * @returns whether it is a day of the calendar: the month and the day are the ones that the date is parsed to (a leap day
+ * is one, `2026-02-30` is none)
+ */
+function isCalendarDate(date: string): boolean {
+  const parsed = parseInstant(date);
+  if (Number.isNaN(parsed.getTime())) return false;
+  const [year, month, day] = date.split('-').map(Number);
+  return (
+    parsed.getFullYear() === year && parsed.getMonth() + 1 === month && parsed.getDate() === day
+  );
+}
+
+/**
  * @param date the review date of the document's value, or anything else
  * @param now the present
  * @returns where the review stands; `null` for a document without a date (or with one that is none), which has no review
  */
 export function reviewOf(date: unknown, now: Date): Review | null {
   if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
-  // A date of the shape that is none (`2026-13-45`) has no standing; it is not told as an overdue review of NaN days.
-  if (Number.isNaN(parseInstant(date).getTime())) return null;
+  // A date of the shape that is none (`2026-13-45`, `2026-02-30`) has no standing; it is not told as an overdue review of
+  // NaN days, nor read as the day it is normalised to (`2026-03-02`).
+  if (!isCalendarDate(date)) return null;
   const days = daysFrom(date, now);
   return {
     date,

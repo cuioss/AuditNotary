@@ -66,6 +66,11 @@
 
   {#if documents === null}
     <p class="column__loading">{$t('common.loading')}</p>
+  {:else if shown.length === 0 && truncated}
+    <!-- The page holds none of this type, but the server holds more: the list is not complete, so it is no empty list. -->
+    <p class="column__note" data-testid="documents-incomplete">
+      {$t('isms.documents.truncated-none', { count: (documents ?? []).length })}
+    </p>
   {:else if shown.length === 0}
     <EmptyState
       icon="state.na"

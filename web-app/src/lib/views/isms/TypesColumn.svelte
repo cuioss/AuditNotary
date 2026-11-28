@@ -18,11 +18,14 @@
   /**
    * The first column of the lens ISMS (UC-ISMS-1): the document types with how many documents each holds and how many are
    * in review, and the way into the risk register. A row opens the documents of that type; the first row opens every
-   * document. A person who may not read the documents is told so and still finds the register.
+   * document. When the server holds more documents than the list, the counts say "at least". A person who may not read the
+   * documents is told so and still finds the register.
    */
   interface Props {
     /** The documents of `isms-core`, or `null` while they are read. */
     documents: DocumentSummary[] | null;
+    /** Whether the server holds more documents than the list: every count is then a lower bound. */
+    truncated?: boolean;
     /** Whether the person may not read the documents. */
     forbidden?: boolean;
     /** Whether the person may read the register, which this column links to. */
@@ -33,11 +36,25 @@
     all?: boolean;
   }
 
-  let { documents, forbidden = false, register = true, selected, all = false }: Props = $props();
+  let {
+    documents,
+    truncated = false,
+    forbidden = false,
+    register = true,
+    selected,
+    all = false,
+  }: Props = $props();
 
   /** @returns the documents of a type, or of every type */
   function of(kind: string | null): DocumentSummary[] {
     return (documents ?? []).filter((entry) => kind === null || entry.kind === kind);
+  }
+
+  /** @returns how many documents of a type or of every type the row says; at least that many when the list is not complete */
+  function countOf(kind: string | null): string {
+    return $t(truncated ? 'isms.types.count-more' : 'isms.types.count', {
+      count: of(kind).length,
+    });
   }
 
   /** @returns how many documents of a type wait in review */
@@ -64,7 +81,7 @@
       <li>
         <RowLink href={documentsAddress()} selected={all} testId="type-all">
           <span class="row__title">{$t('isms.types.all')}</span>
-          <span class="row__meta">{$t('isms.types.count', { count: documents.length })}</span>
+          <span class="row__meta">{countOf(null)}</span>
         </RowLink>
       </li>
       {#each DOCUMENT_KINDS as kind (kind)}
@@ -76,11 +93,13 @@
           >
             <span class="row__title">{kindName($messagesStore, ISMS_CATEGORY, kind)}</span>
             <span class="row__line">
-              <span class="row__meta">{$t('isms.types.count', { count: of(kind).length })}</span>
+              <span class="row__meta">{countOf(kind)}</span>
               {#if inReview(kind) > 0}
                 <StatusLabel
                   tone="running"
-                  label={$t('isms.types.in-review', { count: inReview(kind) })}
+                  label={$t(truncated ? 'isms.types.in-review-more' : 'isms.types.in-review', {
+                    count: inReview(kind),
+                  })}
                 />
               {/if}
             </span>

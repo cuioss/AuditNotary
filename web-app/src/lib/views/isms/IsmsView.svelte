@@ -367,6 +367,7 @@
       {#if level.key === 'isms'}
         <TypesColumn
           documents={documents?.list ?? null}
+          truncated={documents?.truncated ?? false}
           {forbidden}
           register={canReadRegister}
           selected={kind}

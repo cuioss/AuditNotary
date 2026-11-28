@@ -37,11 +37,30 @@ async function open(
   query: Record<string, string> = {},
   params: Record<string, string> = {},
   lang: 'en' | 'de' = 'en',
+  answers: Record<string, unknown> = {},
 ): Promise<Kit & { onnavigate: ReturnType<typeof vi.fn> }> {
-  const kit = await useProfile(profile, lang);
+  const kit = await useProfile(profile, lang, answers);
   const onnavigate = vi.fn();
   render(IsmsView, { route, params, query, onnavigate });
   return { ...kit, onnavigate };
+}
+
+/**
+ * @returns the answer of the server for `isms-core` when it holds more documents than the page: only the policies of the
+ * workshop are on it, the rest is not
+ */
+async function policiesOnlyPage(): Promise<Record<string, unknown>> {
+  await useProfile('workshop');
+  const whole = (await (await fetch('/api/v1/documents/isms-core')).json()) as {
+    documents: { kind: string }[];
+  };
+  return {
+    'GET /api/v1/documents/isms-core': {
+      ...whole,
+      documents: whole.documents.filter((entry) => entry.kind === 'policy'),
+      truncated: true,
+    },
+  };
 }
 
 describe('the types, the first column', () => {
@@ -62,6 +81,16 @@ describe('the types, the first column', () => {
     expect(screen.getByTestId('type-isms-scope')).not.toHaveTextContent('in review');
     expect(screen.getByTestId('type-audit-report')).toHaveTextContent('2 documents');
     expect(screen.getByTestId('type-management-review')).toHaveTextContent('Management review');
+  });
+
+  it('says "at least" for every count when the server holds more documents than the page', async () => {
+    const page = await policiesOnlyPage();
+    await open('workshop', 'isms', {}, {}, 'en', page);
+    await screen.findByTestId('type-list');
+    expect(screen.getByTestId('type-all')).toHaveTextContent('At least 3 documents');
+    expect(screen.getByTestId('type-policy')).toHaveTextContent('At least 3 documents');
+    expect(screen.getByTestId('type-policy')).toHaveTextContent('At least 1 in review');
+    expect(screen.getByTestId('type-audit-report')).toHaveTextContent('At least 0 documents');
   });
 
   it('is the only column of the start address, and no risk type is among the document types', async () => {
@@ -162,6 +191,16 @@ describe('the documents of a type, the second column', () => {
   it('lists nothing for a type the category does not have', async () => {
     await open('workshop', 'isms.documents', { kind: 'procedure' });
     expect(await screen.findByText('No documents yet')).toBeInTheDocument();
+    expect(screen.queryByTestId('document-list')).toBeNull();
+  });
+
+  it('is no empty list when the page holds none of the type but the server holds more', async () => {
+    const page = await policiesOnlyPage();
+    await open('workshop', 'isms.documents', { kind: 'audit-report' }, {}, 'en', page);
+    expect(await screen.findByTestId('documents-incomplete')).toHaveTextContent(
+      'None of the newest 3 documents is of this type. The list is not complete',
+    );
+    expect(screen.queryByText('No documents yet')).toBeNull();
     expect(screen.queryByTestId('document-list')).toBeNull();
   });
 

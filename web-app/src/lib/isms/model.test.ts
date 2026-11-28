@@ -52,11 +52,23 @@ describe('the category', () => {
     expect(isDocumentKind(undefined)).toBe(false);
   });
 
-  it('draws only routes that the canonical addresses have', () => {
+  it('draws the routes of the documents that the canonical addresses have, and no others', () => {
+    // One address of each route, as the canonical table writes it: parsing it names the route of the iteration.
+    const addresses: Record<string, string> = {
+      isms: '/isms',
+      'isms.documents': '/isms/documents',
+      'isms.documents.new': '/isms/documents/new',
+      'isms.document': `/isms/documents/${ID}`,
+      'isms.document.compare': `/isms/documents/${ID}/compare`,
+    };
+    expect([...DOCUMENT_ROUTES].sort()).toEqual(Object.keys(addresses).sort());
     for (const route of DOCUMENT_ROUTES) {
-      expect(parseHref(route === 'isms' ? '/isms' : '/isms/documents')).not.toBeNull();
+      expect(parseHref(addresses[route])?.route).toBe(route);
     }
     expect(DOCUMENT_ROUTES).not.toContain('isms.risks');
+    expect(DOCUMENT_ROUTES).not.toContain('isms.risks.new');
+    expect(DOCUMENT_ROUTES).not.toContain('isms.risk');
+    expect(DOCUMENT_ROUTES).not.toContain('isms.risk.release');
     expect(DOCUMENT_ROUTES).not.toContain('isms.document.release');
   });
 });
@@ -141,12 +153,21 @@ describe('the review date', () => {
     expect(reviewOf('2026-12-27', TODAY)).toMatchObject({ standing: 'ok', days: 31 });
   });
 
+  it('keeps the days that exist, the leap day among them', () => {
+    expect(reviewOf('2028-02-29', TODAY)).toMatchObject({ date: '2028-02-29' });
+    expect(reviewOf('2026-12-31', TODAY)).toMatchObject({ date: '2026-12-31', standing: 'ok' });
+  });
+
   it('has none for a document without a date or with something else', () => {
     expect(reviewOf(undefined, TODAY)).toBeNull();
     expect(reviewOf(null, TODAY)).toBeNull();
     expect(reviewOf('', TODAY)).toBeNull();
     expect(reviewOf('soon', TODAY)).toBeNull();
     expect(reviewOf('2026-13-45', TODAY)).toBeNull();
+    // Parsed, these are another day (2026-03-02, 2026-04-01): the day the person wrote is none.
+    expect(reviewOf('2026-02-30', TODAY)).toBeNull();
+    expect(reviewOf('2026-04-31', TODAY)).toBeNull();
+    expect(reviewOf('2027-02-29', TODAY)).toBeNull();
     expect(reviewOf(20261126, TODAY)).toBeNull();
   });
 });

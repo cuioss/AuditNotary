@@ -2679,6 +2679,16 @@ const ISMS_GERMAN = new Set([
   'a release of a person who may only read',
 ]);
 
+// A name that is no state of the table would drop its German audits without a word: the table is the one place of the names.
+const UNKNOWN_GERMAN = [...ISMS_GERMAN].filter(
+  (name) => !ISMS_STATES.some((state) => state[0] === name),
+);
+if (UNKNOWN_GERMAN.length > 0) {
+  throw new Error(
+    `ISMS_GERMAN names states that ISMS_STATES does not have: ${UNKNOWN_GERMAN.join('; ')}`,
+  );
+}
+
 for (const theme of ['light', 'dark']) {
   for (const language of ['en', 'de']) {
     for (const [name, scenario, address, view, shown, prepare, after = scenario] of ISMS_STATES) {

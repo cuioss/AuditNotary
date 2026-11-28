@@ -65,6 +65,7 @@ test.describe('the types of the ISMS documents (UC-ISMS-1)', () => {
     await useScenario(request, 'workshop');
     await loginToIsms(page, ISMS_ADDRESS);
     await expect(page.getByTestId('view-title')).toHaveText('ISMS');
+    await expect(page.getByTestId('type-list')).toBeVisible();
     expect(await rowIds(page.getByTestId('type-list'), 'type-')).toEqual([
       'all',
       ...KINDS.map((kind) => kind.id),
