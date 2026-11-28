@@ -417,9 +417,10 @@ test.describe('the search of the documents in the palette', () => {
     await expect(page.getByTestId('search-documents').getByRole('link').first()).toBeFocused();
     await page.keyboard.press('ArrowUp');
     await expect(page.getByTestId('search-input')).toBeFocused();
-    // No view is named "access": Enter opens the first document.
+    // No view is named "access": Enter opens the first document, the Access control policy of the lens ISMS.
     await page.keyboard.press('Enter');
-    await expect(page).toHaveURL(noteAddress(NOTES.N5));
+    await expect(page).toHaveURL('/isms/documents/01JZB2D4F6H8K0N2Q4S6V8X0Z3');
+    await expect(page.getByTestId('document-sheet')).toBeVisible();
     await search(page, 'zzzz');
     await expect(page.getByTestId('search-status')).toContainText('No document matches.');
     // The first Escape clears the text of the search field, as in every browser; the next closes the palette.

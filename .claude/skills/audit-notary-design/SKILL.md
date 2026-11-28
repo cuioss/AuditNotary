@@ -92,6 +92,14 @@ Read the concept first, then the component you are about to change.
    open deadlines never block it; `explain` tells `STAGES_OPEN` with a link to the tab of every stage; `mascot={false}`, because an incident's
    deadlines weigh on the page, and `shortLabels`, so that the long values of a form's fields get the room). `NewIncidentSheet` is the
    form of `/incidents/{year}/new` (title and awareness as two `SchemaForm`s, the create through the step-up handler, `LeaveGuard`).
+   `web-app/src/lib/views/isms/` holds the documents of the lens ISMS (`IsmsView`: types › documents › document on `TriagePage`;
+   `TypesColumn`, `DocumentsColumn`; `IsmsDocumentReleaseView`; `DocumentCompareView`, the comparison of two releases on
+   `DashboardPage`) and what it knows is in `web-app/src/lib/isms/model.ts` (the category, the addresses, the releases and their pairs,
+   the review date). The category `isms` is not a generic one, so the lens hands `ISMS_DOCUMENTS` and its own addresses to the generic
+   pieces: `DocumentSheet` takes `addressFor`, `releaseAddress`, `moreFacts` (the review date) and `aside` (the link to the
+   comparison), `NewDocumentSheet` takes `newAddress` and `backAddress`, and `DocumentReleaseView` takes a `lens`. The record of changes
+   is `DiffRecord` (`documents/`), which the release page and the comparison share; a lens that shows changes uses it, never a list of
+   its own. The review date is a fact in words, never a coloured mark.
 3. For a chart, use the five series colours in model order (`--color-series-1` … `-5`); they are validated for
    colour-vision and normal-vision separation against both sheet colours (`#ffffff`, `#161d2e`). A new chart colour
    needs the same validation before it lands: with the validator of the `dataviz` skill where your agent has that

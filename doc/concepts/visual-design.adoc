@@ -376,6 +376,33 @@ do not block the release.
 became aware as two forms of the form kit, the primary act *Create incident* with the reason it waits (the title), and the leave guard
 of the unsaved. A person without the right, or a year that is not the current one, gets a sentence and the way back to the year.
 
+== The ISMS Documents
+
+The documents of the ISMS (the policies, the scope of the ISMS, the audit reports, the management reviews;
+xref:../use-cases/07-isms.adoc#UC-ISMS-1[UC-ISMS-1]) are the generic documents lens on the addresses of the lens *ISMS*
+(`IsmsView`, xref:../specification/rest-api.adoc#_decided_isms[REST API Register, points 77 to 84]): three columns,
+the types, the documents of a type, the document. They add no component but one that is shared, and they are built from what
+the other lenses built. The sheet, the new document and the release are `DocumentSheet`, `NewDocumentSheet` and
+`DocumentReleaseView` over `ReleaseFlow`, which take the addresses, the facts and a block of the margin from the lens.
+
+*The first column* is the types: the serif name of the type, how many documents it holds and a dot with the word *in review* when some
+wait, and below a hairline the way into the risk register. *The second column* is the documents of one type, each row the title, the
+state, the last release (*Last release v3, 20 May 2026*: a document is released more than once, so the number of the version is how
+many releases it has had) and, for a document in work, the working version and who changed it.
+
+*The review date* is a fact under the title of the sheet (*Review due*), in the ink of the text: the date alone when it is far away,
+the date and the days when it is within 30 days or overdue. It has no colour, no box and no seal gold; an overdue review that needs a
+person is the Due lens's item, not a mark on the sheet.
+
+*The comparison of two releases* is a page, `/isms/documents/<id>/compare`: a dashboard page with the breadcrumb of the lens. Two
+pickers over the releases and the act *Show the changes* stand at the top, then the pairs of neighbouring releases when none is
+chosen, or the two sides (version, date, who released it, a link to read it) and the record of the changes. The act is a link in the
+primary look that says what is missing while it cannot be taken.
+
+*One component is shared, not new.* `DiffRecord` is the record of changes that the release page already drew: one folding section per
+property of the document, each change with the words of its field, the earlier value struck out and the later value marked as added;
+the release page and the comparison draw it the same way, and what a value is drawn as (`DiffValue`) is handed in.
+
 == The Pages of the Directory
 
 Three pages belong to the lens *Catalogs* and *Settings* but are not a chain of columns, because each is a task, not an

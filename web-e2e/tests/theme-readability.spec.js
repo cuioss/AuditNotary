@@ -71,6 +71,21 @@ import {
   yearPath,
 } from './helpers/incidents.js';
 import {
+  ACCESS_POLICY,
+  AUDIT_2025,
+  AUDIT_2026,
+  KINDS as ISMS_KINDS,
+  POLICY,
+  SCOPE,
+  SECURE_DEVELOPMENT,
+  compareAddress as ismsCompareAddress,
+  diffPath as ismsDiffPath,
+  documentAddress as ismsDocumentAddress,
+  documentsAddress as ismsDocumentsAddress,
+  newAddress as ismsNewAddress,
+  releaseAddress as ismsReleaseAddress,
+} from './helpers/isms.js';
+import {
   addRow,
   addThreat,
   fillName,
@@ -2373,6 +2388,331 @@ for (const theme of ['light', 'dark']) {
       await shownInScenario(page, request, after, shown);
       await expectNoSeriousViolations(page, `incidents: ${name} (${scenario}, ${theme})`);
     });
+  }
+}
+
+/**
+ * The lens ISMS, the documents (UC-ISMS-1): the types, a list, the sheet (with its review date overdue and due soon, an
+ * earlier state, a conflict and the refusals of a save), the comparison of two releases in each of its states, a new document
+ * and the review and release. Each is reached on the page after the theme and the language are chosen, which reload it, so
+ * what a state needs (a click, a route) is done by `prepare`. Both themes in both languages, the clock pinned to the instant
+ * the mock reads at.
+ */
+const ISMS_STATES = [
+  ['the types', 'workshop', '/isms', 'isms-view', 'type-list', async () => {}],
+  [
+    'the types of a person who may not read the documents',
+    'release',
+    '/isms',
+    'isms-view',
+    'isms-forbidden',
+    async () => {},
+  ],
+  ['no document yet', 'empty', ismsDocumentsAddress(), 'isms-view', 'types-empty', async () => {}],
+  [
+    'the documents of a type',
+    'workshop',
+    ismsDocumentsAddress(ISMS_KINDS[0].id),
+    'isms-view',
+    'document-list',
+    async () => {},
+  ],
+  [
+    'every document',
+    'workshop',
+    ismsDocumentsAddress(),
+    'isms-view',
+    'document-list',
+    async () => {},
+  ],
+  [
+    'the documents of a person who may only read',
+    'read-only',
+    ismsDocumentsAddress(ISMS_KINDS[0].id),
+    'isms-view',
+    'document-new',
+    async () => {},
+  ],
+  [
+    'the sheet of a released document',
+    'workshop',
+    ismsDocumentAddress(POLICY),
+    'isms-view',
+    'compare-link',
+    async () => {},
+  ],
+  [
+    'the sheet of a document whose review is overdue',
+    'workshop',
+    ismsDocumentAddress(SCOPE),
+    'isms-view',
+    'compare-link',
+    async () => {},
+  ],
+  [
+    'the sheet of a document whose review is due soon',
+    'workshop',
+    ismsDocumentAddress(ACCESS_POLICY),
+    'isms-view',
+    'compare-link',
+    async () => {},
+  ],
+  [
+    'the sheet of a document that cannot be compared yet',
+    'workshop',
+    ismsDocumentAddress(AUDIT_2025),
+    'isms-view',
+    'compare-none',
+    async () => {},
+  ],
+  [
+    'the sheet of a document in review',
+    'workshop',
+    ismsDocumentAddress(SECURE_DEVELOPMENT),
+    'isms-view',
+    'transition-isms.release',
+    async () => {},
+  ],
+  [
+    'an earlier state of a document',
+    'workshop',
+    ismsDocumentAddress(POLICY, 'v1'),
+    'isms-view',
+    'revision-notice',
+    async () => {},
+  ],
+  [
+    'a conflict of the statements to decide',
+    'workshop#isms-document-saved-by-other',
+    ismsDocumentAddress(POLICY),
+    'isms-view',
+    'conflict-panel',
+    async (page) => {
+      await field(page, '/statements')
+        .getByRole('textbox')
+        .first()
+        .fill('Every exception to these rules is recorded and reviewed.');
+      await page.getByTestId('save-everyone').click();
+    },
+  ],
+  [
+    'fields the server refused',
+    'workshop#isms-document-invalid',
+    ismsDocumentAddress(POLICY),
+    'isms-view',
+    'failure-notice',
+    async (page) => {
+      await field(page, '/title').getByRole('textbox').fill('Information security policy, 2027');
+      await page.getByTestId('save-everyone').click();
+      await expect(page.getByTestId('save-state')).toHaveAttribute('data-state', 'failed');
+    },
+  ],
+  [
+    'the comparison, the pairs to choose from',
+    'workshop',
+    ismsCompareAddress(POLICY),
+    'document-compare-view',
+    'compare-pairs',
+    async () => {},
+  ],
+  [
+    'the comparison of two releases',
+    'workshop',
+    ismsCompareAddress(POLICY, 'v2', 'v3'),
+    'document-compare-view',
+    'compare-record',
+    async () => {},
+  ],
+  [
+    'the comparison of two releases of the scope',
+    'workshop',
+    ismsCompareAddress(SCOPE, 'v1', 'v2'),
+    'document-compare-view',
+    'compare-record',
+    async () => {},
+  ],
+  [
+    'the comparison of the same version twice',
+    'workshop',
+    ismsCompareAddress(POLICY, 'v1', 'v1'),
+    'document-compare-view',
+    'compare-same',
+    async () => {},
+  ],
+  [
+    'the comparison of two versions that are equal',
+    'workshop',
+    ismsCompareAddress(POLICY, 'v1', 'v2'),
+    'document-compare-view',
+    'compare-equal',
+    async (page) => {
+      await patchRead(page, `**${ismsDiffPath(POLICY)}**`, (body) => ({ ...body, sections: [] }));
+      await page.reload();
+    },
+  ],
+  [
+    'the comparison with a version that does not exist',
+    'workshop',
+    ismsCompareAddress(POLICY, 'v9', 'v3'),
+    'document-compare-view',
+    'compare-refused',
+    async () => {},
+  ],
+  [
+    'the comparison of a document with one release',
+    'workshop',
+    ismsCompareAddress(AUDIT_2025),
+    'document-compare-view',
+    'compare-too-few',
+    async () => {},
+  ],
+  [
+    'the choice of the type of a new document',
+    'workshop',
+    ismsNewAddress(),
+    'isms-view',
+    'new-document-choice',
+    async () => {},
+  ],
+  [
+    'the form of a new document',
+    'workshop',
+    ismsNewAddress('policy'),
+    'isms-view',
+    'new-document-sheet',
+    async () => {},
+  ],
+  [
+    'the form of a new document while the Git server is down',
+    'workshop#isms-git-unavailable',
+    ismsNewAddress('policy'),
+    'isms-view',
+    'save-state',
+    async (page) => {
+      await field(page, '/title').getByRole('textbox').fill('A title');
+      await page.getByTestId('save-everyone').click();
+      await expect(page.getByRole('alert')).toBeVisible();
+    },
+  ],
+  [
+    'a new document of a person who may only read',
+    'read-only',
+    ismsNewAddress('policy'),
+    'isms-view',
+    'new-document-sheet',
+    async () => {},
+  ],
+  [
+    'the review of a release',
+    'workshop',
+    ismsReleaseAddress(SECURE_DEVELOPMENT),
+    'release-view',
+    'release-record',
+    async () => {},
+  ],
+  [
+    'the seal of a release',
+    'workshop',
+    ismsReleaseAddress(SECURE_DEVELOPMENT),
+    'release-view',
+    'release-seal',
+    async (page) => {
+      await page.getByTestId('release-act').click();
+      await expect(page.getByTestId('release-done')).toBeVisible();
+    },
+    'workshop#isms-document-released',
+  ],
+  [
+    'a release that asks for a fresh login',
+    'workshop#isms-document-release-step-up',
+    ismsReleaseAddress(SECURE_DEVELOPMENT),
+    'release-view',
+    'release-act',
+    async () => {},
+  ],
+  [
+    'a release the Git server cannot make',
+    'workshop#isms-git-unavailable',
+    ismsReleaseAddress(SECURE_DEVELOPMENT),
+    'release-view',
+    'notice',
+    async (page) => {
+      await page.getByTestId('release-act').click();
+      await expect(page.getByRole('alert')).toBeVisible();
+    },
+  ],
+  [
+    'a release of a person who may only read',
+    'read-only',
+    ismsReleaseAddress(SECURE_DEVELOPMENT),
+    'release-view',
+    'release-act',
+    async () => {},
+  ],
+  [
+    'the release of a draft',
+    'workshop',
+    ismsReleaseAddress(AUDIT_2026),
+    'release-view',
+    'release-act',
+    async () => {},
+  ],
+];
+
+/** The states that are audited in German too: one of each kind of page, so that the longer words are drawn on each. */
+const ISMS_GERMAN = new Set([
+  'the types',
+  'the documents of a type',
+  'every document',
+  'the sheet of a document whose review is overdue',
+  'an earlier state of a document',
+  'a conflict of the statements to decide',
+  'fields the server refused',
+  'the comparison, the pairs to choose from',
+  'the comparison of two releases',
+  'the comparison of the same version twice',
+  'the comparison with a version that does not exist',
+  'the choice of the type of a new document',
+  'the form of a new document',
+  'the review of a release',
+  'the seal of a release',
+  'a release of a person who may only read',
+]);
+
+// A name that is no state of the table would drop its German audits without a word: the table is the one place of the names.
+const UNKNOWN_GERMAN = [...ISMS_GERMAN].filter(
+  (name) => !ISMS_STATES.some((state) => state[0] === name),
+);
+if (UNKNOWN_GERMAN.length > 0) {
+  throw new Error(
+    `ISMS_GERMAN names states that ISMS_STATES does not have: ${UNKNOWN_GERMAN.join('; ')}`,
+  );
+}
+
+for (const theme of ['light', 'dark']) {
+  for (const language of ['en', 'de']) {
+    for (const [name, scenario, address, view, shown, prepare, after = scenario] of ISMS_STATES) {
+      if (language === 'de' && !ISMS_GERMAN.has(name)) continue;
+      test(`isms: ${name} of ${scenario} at ${address} in the ${theme} theme in ${language}`, async ({
+        page,
+        request,
+      }) => {
+        await useScenario(request, scenario);
+        await pinClock(page);
+        await login(page, address);
+        await page.evaluate(
+          (value) => window.localStorage.setItem('audit_notary_locale', value),
+          language,
+        );
+        await useTheme(page, theme);
+        await expect(page.locator('html')).toHaveAttribute('lang', language);
+        await expect(page.getByTestId(view).first()).toBeVisible();
+        await expectScenario(request, scenario);
+        await prepare(page, request, language);
+        await shownInScenario(page, request, after, shown);
+        await expectNoSeriousViolations(page, `isms: ${name} (${scenario}, ${theme}, ${language})`);
+      });
+    }
   }
 }
 

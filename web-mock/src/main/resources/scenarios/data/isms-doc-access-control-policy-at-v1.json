@@ -22,7 +22,7 @@
         "purpose": "Access to systems and data is given to people who need it for their work, and to nobody else.",
         "statements": "Access is given by role.\n\n* The owner of a system approves every access to it.\n* Privileged access is personal and is logged.",
         "applies-to": [
-          "organisation"
+          "team:organisation"
         ],
         "review-due": "2026-04-22",
         "related": [

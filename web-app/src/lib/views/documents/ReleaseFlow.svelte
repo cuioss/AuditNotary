@@ -95,7 +95,6 @@
   import { onDestroy, type Snippet } from 'svelte';
   import Button from '../../components/Button.svelte';
   import Chip from '../../components/Chip.svelte';
-  import Disclosure from '../../components/Disclosure.svelte';
   import Icon from '../../components/Icon.svelte';
   import Link from '../../components/Link.svelte';
   import Notice from '../../components/Notice.svelte';
@@ -111,6 +110,7 @@
   import { session, status } from '../../stores/app';
   import WizardPage from '../../templates/WizardPage.svelte';
   import { versionOf } from '../samm/workflow';
+  import DiffRecord from './DiffRecord.svelte';
 
   /**
    * The review and release of a document, the same for every category (UC-DOC-7, AUN-WEB-6): what the approver releases,
@@ -367,37 +367,13 @@
       <section class="section" aria-labelledby="release-record">
         <h2 class="section__title" id="release-record">{$t('release.record')}</h2>
         <p class="section__lede">{texts.recordLede}</p>
-        <div class="record" data-testid="release-record">
-          {#each groups as group (group.key)}
-            <Disclosure testId="record-{group.key}" open={!folded && !released}>
-              {#snippet summary()}
-                <span class="record__summary">
-                  <span class="record__name">{group.title}</span>
-                  <span class="record__count">{texts.count(group.changes.length)}</span>
-                </span>
-              {/snippet}
-              <ul class="changes">
-                {#each group.changes as change (change.key)}
-                  <li
-                    class="change"
-                    class:change--bare={change.label === ''}
-                    class:change--short={shortLabels}
-                  >
-                    {#if change.label !== ''}
-                      <span class="change__question">{change.label}</span>
-                    {/if}
-                    <span class="change__values">
-                      {#if change.before !== null && change.before !== undefined}
-                        <del class="change__before">{@render value(change, 'before')}</del>
-                      {/if}
-                      <ins class="change__after">{@render value(change, 'after')}</ins>
-                    </span>
-                  </li>
-                {/each}
-              </ul>
-            </Disclosure>
-          {/each}
-        </div>
+        <DiffRecord
+          {groups}
+          folded={folded || !!released}
+          {shortLabels}
+          count={texts.count}
+          {value}
+        />
       </section>
 
       {#snippet status()}
@@ -526,88 +502,6 @@
     }
   }
 
-  .record {
-    display: flex;
-    flex-direction: column;
-    border-block-start: 1px solid var(--color-border);
-  }
-
-  .record > :global(*) {
-    border-block-end: 1px solid var(--color-border);
-    padding-block: var(--space-1);
-  }
-
-  .record__summary {
-    display: flex;
-    justify-content: space-between;
-    gap: var(--space-3);
-  }
-
-  .record__name {
-    font-family: var(--font-serif);
-    font-size: var(--text-md);
-    font-weight: var(--weight-semibold);
-    color: var(--color-text-primary);
-  }
-
-  .record__count {
-    flex: 0 0 auto;
-    font-size: var(--text-sm);
-    color: var(--color-text-muted);
-    white-space: nowrap;
-  }
-
-  .changes {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-    list-style: none;
-    padding-block-end: var(--space-3);
-  }
-
-  .change {
-    display: grid;
-    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-    gap: var(--space-4);
-    font-size: var(--text-sm);
-  }
-
-  .change--short {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
-  }
-
-  .change--bare {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .change__question {
-    color: var(--color-text-secondary);
-  }
-
-  .change__values {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    min-inline-size: 0;
-    overflow-wrap: anywhere;
-  }
-
-  .change__before {
-    align-self: flex-start;
-    color: var(--color-text-muted);
-    background-color: var(--color-diff-removed);
-    text-decoration-color: var(--color-danger);
-    padding-inline: var(--space-1);
-  }
-
-  .change__after {
-    align-self: flex-start;
-    padding-inline: var(--space-1);
-    background-color: var(--color-diff-added);
-    color: var(--color-text-primary);
-    text-decoration: none;
-  }
-
   .margin {
     display: flex;
     flex-direction: column;
@@ -669,16 +563,6 @@
   @media (max-width: 767px) {
     .stage {
       flex-direction: column;
-    }
-
-    .change {
-      grid-template-columns: 1fr;
-      gap: var(--space-1);
-    }
-
-    /* The summary of a group of the record is a target: 44 px on a phone (AUN-WEB-2). */
-    .record :global(.disclosure__summary) {
-      min-block-size: 44px;
     }
   }
 

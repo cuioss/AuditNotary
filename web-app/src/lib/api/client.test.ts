@@ -545,6 +545,16 @@ describe('the SAMM and document requests', () => {
     ]);
   });
 
+  it('reads the diff of two states of a document with both revisions, or the current state as the later side', async () => {
+    fetchMock.mockImplementation(async () => json(200, { ok: true }));
+    await client.getDiffBetween('isms-core', '01JZB1C3E5G7J9M1P3R5T7W9Y2', 'v1', 'v3');
+    await client.getDiffBetween('isms-core', '01JZB1C3E5G7J9M1P3R5T7W9Y2', 'a0879b6');
+    expect(fetchMock.mock.calls.map((call) => call[0])).toEqual([
+      '/api/v1/documents/isms-core/01JZB1C3E5G7J9M1P3R5T7W9Y2/diff?from=v1&to=v3',
+      '/api/v1/documents/isms-core/01JZB1C3E5G7J9M1P3R5T7W9Y2/diff?from=a0879b6',
+    ]);
+  });
+
   it('reads the pinned models and the trend, and creates a scope and an assessment (SAMM Requests)', async () => {
     fetchMock.mockImplementation(async (path: string) =>
       path === '/api/v1/session' ? json(200, SESSION) : json(200, { ok: true }),

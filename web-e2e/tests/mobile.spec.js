@@ -78,6 +78,22 @@ import {
 } from './helpers/incidents.js';
 import { patchRead } from './helpers/samm.js';
 import {
+  AUDIT_2025,
+  KINDS as ISMS_KINDS,
+  POLICY,
+  SCOPE,
+  SECURE_DEVELOPMENT,
+  compareAddress as ismsCompareAddress,
+  documentAddress as ismsDocumentAddress,
+  documentsAddress as ismsDocumentsAddress,
+  listedIds as ismsListedIds,
+  loginToCompare as loginToIsmsCompare,
+  loginToIsms,
+  loginToRelease as loginToIsmsRelease,
+  loginToSheet as loginToIsmsSheet,
+  newAddress as ismsNewAddress,
+} from './helpers/isms.js';
+import {
   CANDIDATES,
   DESCRIPTOR,
   IMPORT_ADDRESS,
@@ -1962,5 +1978,120 @@ test.describe('at 390 px', () => {
     await expect(page.getByTestId('due-list')).toContainText(PHISHING.title);
     await expectNoSideways(page);
     await expectNoSeriousViolations(page, 'due deadlines (phone)');
+  });
+  test('the types and the documents of the ISMS fit: every row is a target and nothing scrolls sideways', async ({
+    page,
+    request,
+  }) => {
+    await useScenario(request, 'workshop');
+    await loginToIsms(page, '/isms');
+    await expect(page.getByTestId('type-list')).toBeVisible();
+    await expectTarget(page.getByTestId('type-all'));
+    for (const kind of ISMS_KINDS) await expectTarget(page.getByTestId(`type-${kind.id}`));
+    await expectTarget(page.getByTestId('register-link'));
+    await expectNoSideways(page);
+    await expectNoSeriousViolations(page, 'isms types (phone)');
+    await page.getByTestId('type-policy').click();
+    await expect(page.getByTestId('document-list')).toBeVisible();
+    await expectTarget(page.getByTestId('new-document'));
+    for (const row of await page.getByTestId('document-list').locator('> li > a').all()) {
+      await expectTarget(row);
+      await expectInsideScreen(row);
+    }
+    expect(await ismsListedIds(page)).toHaveLength(3);
+    await expectNoSideways(page);
+    await expectNoSeriousViolations(page, 'isms documents (phone)');
+    await page.goto(ismsDocumentsAddress());
+    await expect(page.getByTestId('document-list')).toBeVisible();
+    await expectNoSideways(page);
+    await expectNoSeriousViolations(page, 'isms every document (phone)');
+  });
+
+  test('the sheet of an ISMS document fits: the save and the way to compare are reachable', async ({
+    page,
+    request,
+  }) => {
+    await useScenario(request, 'workshop');
+    await loginToIsmsSheet(page, SCOPE);
+    await expect(page.getByTestId('save-everyone')).toBeAttached();
+    await expectNoSideways(page);
+    await expect(page.getByTestId('document-sheet')).toContainText('6 days overdue');
+    await expectTarget(page.getByTestId('compare-link'));
+    await expectInsideScreen(page.getByTestId('compare-link'));
+    await expectNoSeriousViolations(page, 'isms sheet (phone)');
+    await page.goto(ismsDocumentAddress(POLICY, 'v1'));
+    await expect(page.getByTestId('revision-notice')).toBeVisible();
+    await expectNoSideways(page);
+    await expectNoSeriousViolations(page, 'isms earlier state (phone)');
+  });
+
+  test('the ISMS comparison fits: the pickers and the act are targets, the pairs are links of the phone size and the changes stay inside the screen', async ({
+    page,
+    request,
+  }) => {
+    await useScenario(request, 'workshop');
+    await loginToIsmsCompare(page, POLICY);
+    await expectTarget(page.getByTestId('compare-from'));
+    await expectTarget(page.getByTestId('compare-to'));
+    await expectTarget(page.getByTestId('compare-show'));
+    for (const link of await page.getByTestId('compare-pairs').getByRole('link').all()) {
+      await expectTarget(link);
+      await expectInsideScreen(link);
+    }
+    await expectNoSideways(page);
+    await expectNoSeriousViolations(page, 'isms compare pairs (phone)');
+    await page.getByTestId('compare-pairs').getByRole('link').first().click();
+    await expect(page.getByTestId('compare-record')).toBeVisible();
+    await expectInsideScreen(page.getByTestId('compare-record'));
+    for (const group of await page.getByTestId('compare-record').locator('summary').all()) {
+      await expectInsideScreen(group);
+    }
+    await expectNoSideways(page);
+    await expectNoSeriousViolations(page, 'isms compare result (phone)');
+    await page.goto(ismsCompareAddress(POLICY, 'v1', 'v1'));
+    await expect(page.getByTestId('compare-same')).toBeVisible();
+    await expectInsideScreen(page.getByTestId('compare-same'));
+    await expectNoSideways(page);
+    await expectNoSeriousViolations(page, 'isms compare same (phone)');
+    await page.goto(ismsCompareAddress(AUDIT_2025));
+    await expect(page.getByTestId('compare-too-few')).toBeVisible();
+    await expectNoSideways(page);
+    await expectNoSeriousViolations(page, 'isms compare too few (phone)');
+  });
+
+  test('the release of an ISMS document fits: the record is in groups, and the act and the way back are targets', async ({
+    page,
+    request,
+  }) => {
+    await useScenario(request, 'workshop');
+    await loginToIsmsRelease(page, SECURE_DEVELOPMENT);
+    await expectTarget(page.getByTestId('release-act'));
+    await expectTarget(page.getByTestId('release-back'));
+    await expectInsideScreen(page.getByTestId('release-record'));
+    await expectNoSideways(page);
+    await expectNoSeriousViolations(page, 'isms release (phone)');
+    await page.getByTestId('release-act').click();
+    await expect(page.getByTestId('release-done')).toBeVisible();
+    await expectTarget(page.getByTestId('release-open'));
+    await expectNoSideways(page);
+    await expectNoSeriousViolations(page, 'isms release done (phone)');
+  });
+
+  test('the form of a new ISMS document and the choice of its type fit, and the choices are targets', async ({
+    page,
+    request,
+  }) => {
+    await useScenario(request, 'workshop');
+    await loginToIsms(page, ismsNewAddress());
+    await expect(page.getByTestId('new-document-choice')).toBeVisible();
+    for (const kind of ISMS_KINDS) await expectTarget(page.getByTestId(`choose-${kind.id}`));
+    await expectNoSideways(page);
+    await expectNoSeriousViolations(page, 'isms new document choice (phone)');
+    await page.getByTestId('choose-policy').click();
+    await expect(page.getByTestId('new-document-sheet')).toBeVisible();
+    await expectTarget(page.getByTestId('save-everyone'));
+    await expectInsideScreen(page.getByTestId('new-document-sheet'));
+    await expectNoSideways(page);
+    await expectNoSeriousViolations(page, 'isms new document (phone)');
   });
 });
