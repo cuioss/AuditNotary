@@ -380,7 +380,7 @@ of the unsaved. A person without the right, or a year that is not the current on
 
 The documents of the ISMS (the policies, the scope of the ISMS, the audit reports, the management reviews;
 xref:../use-cases/07-isms.adoc#UC-ISMS-1[UC-ISMS-1]) are the generic documents lens on the addresses of the lens *ISMS*
-(`IsmsView`, xref:../specification/rest-api.adoc#_decided_isms[REST API Register, points 77 to 82]): three columns,
+(`IsmsView`, xref:../specification/rest-api.adoc#_decided_isms[REST API Register, points 77 to 84]): three columns,
 the types, the documents of a type, the document. They add no component but one that is shared, and they are built from what
 the other lenses built. The sheet, the new document and the release are `DocumentSheet`, `NewDocumentSheet` and
 `DocumentReleaseView` over `ReleaseFlow`, which take the addresses, the facts and a block of the margin from the lens.

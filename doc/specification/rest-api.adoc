@@ -4660,7 +4660,7 @@ a release, the commit id of a commit or `working`:
   "sections": [
     { "part": "data", "changes": [
         { "pointer": "/statements", "before": "…", "after": "…" },
-        { "pointer": "/applies-to", "before": ["team:payments"], "after": ["organisation"] },
+        { "pointer": "/applies-to", "before": ["team:payments"], "after": ["team:organisation"] },
         { "pointer": "/review-due", "before": "2026-11-18", "after": "2027-05-20" } ] }
   ]
 }
@@ -6284,7 +6284,7 @@ refuses the create under multi-factor with a notice, or leaving the loss.
   after a re-read diff that carries a change saved meanwhile (`risk-release-changed-reviewed`) releases that change with the version
   (`risk-released-changed`).
 
-*Decided provisionally with the documents of the lens ISMS* (the web app, UC-ISMS-1; points 77 to 82 go on from 76; the risk
+*Decided provisionally with the documents of the lens ISMS* (the web app, UC-ISMS-1; points 77 to 84 go on from 76; the risk
 register is the next part of the lens):
 
 [start=77]
@@ -6323,14 +6323,25 @@ register is the next part of the lens):
   `/isms/documents/new?kind=`, holds its value in the page until the first save, asks before the page is left, and moves to the
   address the `201` names in place of its own; without `kind` the four types are offered as a choice, and a type the category does
   not have (the risk among them) is the not-found view.
-. *A policy that applies to the whole organisation names the reference `organisation`.* The data of the mock does so (`applies-to`
-  of the three policies); no specification says what such a reference is. The mock's `GET /api/v1/references/resolve` answers it
-  (title *Organisation*, no address) so that the sheet does not show *Not found* for a released policy.
+. *A policy that applies to the whole organisation names the reference `team:organisation`.* The form kit checks the shape of a
+  reference (`<alias>:<kind>/<id>` or `<catalog>:<id>`, <<_form_kit_requests>>), and the bare word `organisation` does not have it,
+  so a released policy showed *Check this row* on that value. The data of the mock therefore names `team:organisation` (`applies-to`
+  of the information security policy and the access control policy), and the mock's `GET /api/v1/references/resolve` answers it (title *Organisation*, no address) so that the
+  sheet does not show *Not found*. No specification says that the team catalog holds such an entry.
+. *Opening a document from the row *All documents* keeps the list of its type.* The address of a sheet carries no `kind`
+  (`/isms/documents/<id>`), so the lens cannot know which list the person came from; the second column then shows the documents of
+  the type of the document that is open, and the row *All documents* is not marked. The way back to the first column and *All
+  documents* stays one step.
+. *A comparison the server refuses has the words of the page.* A `422 VALIDATION` of the comparison (`/from` or `/to`, a version that
+  is none of the document's, or an order or a pair the server does not compare) carries no field of the page to mark, so the page
+  says *These two versions could not be compared* in place of the form's *Some entries are not valid*; a `404` says that a version
+  does not exist for this document.
 
 For the owner, besides the questions of the earlier points: whether the summary of a document in `GET /api/v1/documents/{repository}`
 should carry its review date, so that a list could show the reviews that fall due (80); whether the comparison should offer the commits
-between two releases and the working state as the earlier side (79); whether `organisation` is a reference at all, or a policy that
-applies to everyone should say so with a field of its own (82).
+between two releases and the working state as the earlier side (79); whether `team:organisation` is the entry of the team catalog that a policy for
+everyone names, or such a policy should say so with a field of its own (82); whether the sheet should remember the list it was
+opened from (83).
 
 For the owner: whether the categories of the ISMS should be one workflow or one per type, and whether a document may be
 released once only (53); whether a generated page of the ISMS documents belongs in the web app (55); the fields of the five

@@ -666,7 +666,7 @@ class IsmsTest {
             assertEquals(List.of("/boundaries", "/exclusions", "/review-due"), pointersOf("isms-diff-isms-scope-v1-v2.json"));
             var v23 = data("isms-diff-information-security-policy-v2-v3.json").path("sections").path(0).path("changes");
             assertEquals(List.of("team:payments"), texts(v23.get(1).path("before")));
-            assertEquals(List.of("organisation"), texts(v23.get(1).path("after")));
+            assertEquals(List.of("team:organisation"), texts(v23.get(1).path("after")));
             assertEquals("2026-11-18", v23.get(2).path("before").asText());
             assertEquals("2027-05-20", v23.get(2).path("after").asText());
             // the union is the first value against the last one: its before is that of v1 and its after that of v3
@@ -828,10 +828,8 @@ class IsmsTest {
                 var value = read.path("parts").path("data").path("value");
                 for (String name : List.of("related", "applies-to")) {
                     value.path(name).forEach(reference -> {
-                        if (!"organisation".equals(reference.asText())) {
-                            assertTrue(references.containsKey(reference.asText()) && references.get(reference.asText()).path("found").asBoolean(),
-                                    read.path("id").asText() + " names " + reference.asText());
-                        }
+                        assertTrue(references.containsKey(reference.asText()) && references.get(reference.asText()).path("found").asBoolean(),
+                                read.path("id").asText() + " names " + reference.asText());
                     });
                 }
             }

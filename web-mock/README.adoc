@@ -1749,7 +1749,7 @@ the same, `release` those of `isms-register`, `degraded` and `local` the lists, 
 |Four items of the kind `review`, lens `isms`, replace the old item of `R-012`: `R-007` (2026-11-18), the scope of the ISMS (2026-11-20), the access control policy (2026-12-08), `R-012` (2026-12-15). The rule: the released entries whose review date is before today or within 30 days; none for an entry in review or a draft. `release` lists the two risks only (it reads `isms-register`, not `isms-core`)
 
 |`GET /api/v1/search?q=policy`, `GET /api/v1/references/resolve`
-|`documents-index*.json` hold the sixteen entries (three hits for `policy`, one for `R-009`); the references of `R-009`, `R-015`, `R-043` (*not found*: the number is not assigned yet), the policy, the gaps `st` and `sm` and the threat `T-02` resolve, and `organisation` (title *Organisation*, no address), which the policies name in `applies-to`
+|`documents-index*.json` hold the sixteen entries (three hits for `policy`, one for `R-009`); the references of `R-009`, `R-015`, `R-043` (*not found*: the number is not assigned yet), the policy, the gaps `st` and `sm` and the threat `T-02` resolve, and `team:organisation` (title *Organisation*, no address), which the policies name in `applies-to`
 |===
 
 *How the number and the origin work.* The engine matches the method, the path and the query, never the body, so that the create

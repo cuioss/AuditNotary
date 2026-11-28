@@ -22,7 +22,7 @@
         "purpose": "Access to systems and data is given to people who need it for their work, and to nobody else. Access of a person who changes the role or leaves is reviewed within a week.",
         "statements": "Access is given by role and reviewed every half year.\n\n* The owner of a system approves every access to it.\n* Privileged access is personal, is logged and is renewed every quarter.\n* The accounts of suppliers end with their project.",
         "applies-to": [
-          "organisation"
+          "team:organisation"
         ],
         "review-due": "2026-12-08",
         "related": [

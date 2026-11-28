@@ -128,7 +128,7 @@
   .change__values {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--space-1);
     min-inline-size: 0;
     overflow-wrap: anywhere;
   }

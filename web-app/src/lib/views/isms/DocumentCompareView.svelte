@@ -7,13 +7,7 @@
   import Select, { type SelectOption } from '../../components/Select.svelte';
   import { apiClient } from '../../api/client';
   import { errorMessageKey, isApiError } from '../../api/errors';
-  import type {
-    CategorySchema,
-    DocumentDiff,
-    DocumentRead,
-    JsonSchema,
-    Revision,
-  } from '../../api/types';
+  import type { DocumentDiff, DocumentRead, JsonSchema, Revision } from '../../api/types';
   import { groupDiff } from '../../documents/diff';
   import { versionOfTag } from '../../documents/history';
   import { createFormServices, provideFormServices } from '../../forms/services';
@@ -79,25 +73,16 @@
       failure = null;
     });
     let live = true;
-    Promise.all([
+    // The document decides whether the address is a document; a failed read of its schema or its revisions is a failure, not
+    // a document that does not exist.
+    Promise.allSettled([
       apiClient.getDocument(DOCUMENTS_REPOSITORY, id),
       apiClient.listRevisions(DOCUMENTS_REPOSITORY, id),
       apiClient.getCategorySchema(ISMS_CATEGORY),
-    ]).then(
-      ([loaded, listed, schemas]: [DocumentRead, { revisions: Revision[] }, CategorySchema]) => {
-        if (!live) return;
-        const found = schemas.kinds.find((entry) => entry.id === loaded.kind)?.schema ?? null;
-        // A document type the server serves no schema of is no address of this lens.
-        if (!found) {
-          missing = true;
-          return;
-        }
-        doc = loaded;
-        revisions = listed.revisions;
-        schema = found;
-      },
-      (error: unknown) => {
-        if (!live) return;
+    ]).then(([read, listed, schemas]) => {
+      if (!live) return;
+      if (read.status === 'rejected') {
+        const error: unknown = read.reason;
         if (
           isApiError(error) &&
           (error.outcome === 'NOT_FOUND' || error.outcome === 'VALIDATION')
@@ -106,8 +91,27 @@
         } else {
           failure = errorMessageKey(error);
         }
-      },
-    );
+        return;
+      }
+      if (listed.status === 'rejected') {
+        failure = errorMessageKey(listed.reason);
+        return;
+      }
+      if (schemas.status === 'rejected') {
+        failure = errorMessageKey(schemas.reason);
+        return;
+      }
+      const found =
+        schemas.value.kinds.find((entry) => entry.id === read.value.kind)?.schema ?? null;
+      // A document type the server serves no schema of is no address of this lens.
+      if (!found) {
+        missing = true;
+        return;
+      }
+      doc = read.value;
+      revisions = listed.value.revisions;
+      schema = found;
+    });
     return () => {
       live = false;
     };
@@ -139,10 +143,15 @@
       },
       (error: unknown) => {
         if (!live) return;
-        refused =
-          isApiError(error) && error.outcome === 'NOT_FOUND'
+        // A pair the server does not compare (`from` after `to`, a revision that is no revision) is a refusal without a
+        // field of this page to mark: it gets the page's own words, not the form's "Some entries are not valid".
+        refused = !isApiError(error)
+          ? errorMessageKey(error)
+          : error.outcome === 'NOT_FOUND'
             ? 'isms.compare.missing'
-            : errorMessageKey(error);
+            : error.outcome === 'VALIDATION'
+              ? 'isms.compare.invalid'
+              : errorMessageKey(error);
       },
     );
     return () => {
@@ -239,7 +248,7 @@
       <Notice tone="danger" title={$t(failure)} live />
     {:else if !doc || !revisions}
       <p class="muted">{$t('common.loading')}</p>
-    {:else if releases.length < 2}
+    {:else if releases.length < 2 && !query.from}
       <div data-testid="compare-too-few">
         <EmptyState
           icon="state.na"
@@ -310,7 +319,9 @@
       {:else if refused}
         <div data-testid="compare-refused">
           <Notice
-            tone={refused === 'isms.compare.missing' ? 'attention' : 'danger'}
+            tone={refused === 'isms.compare.missing' || refused === 'isms.compare.invalid'
+              ? 'attention'
+              : 'danger'}
             title={$t(refused)}
             live
           />

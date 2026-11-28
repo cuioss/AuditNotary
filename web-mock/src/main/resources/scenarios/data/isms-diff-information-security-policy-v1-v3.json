@@ -23,7 +23,7 @@
             "team:payments"
           ],
           "after": [
-            "organisation"
+            "team:organisation"
           ]
         },
         {

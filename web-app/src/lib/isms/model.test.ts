@@ -146,6 +146,7 @@ describe('the review date', () => {
     expect(reviewOf(null, TODAY)).toBeNull();
     expect(reviewOf('', TODAY)).toBeNull();
     expect(reviewOf('soon', TODAY)).toBeNull();
+    expect(reviewOf('2026-13-45', TODAY)).toBeNull();
     expect(reviewOf(20261126, TODAY)).toBeNull();
   });
 });

@@ -22,7 +22,7 @@
         "purpose": "This policy states how the organisation protects the confidentiality, integrity and availability of its information, and who is accountable for each part of that protection.",
         "statements": "The management of the organisation is accountable for information security and reviews it every year.\n\n* Every system and every set of data has an owner who answers for its protection.\n* Access is given by need and withdrawn when the need ends.\n* Security incidents are reported to the security office without delay.\n* Suppliers that process our information are bound to the same rules.\n* A change of the security rules is released only after the review of the Chief Information Security Officer.",
         "applies-to": [
-          "organisation"
+          "team:organisation"
         ],
         "review-due": "2027-05-20"
       }

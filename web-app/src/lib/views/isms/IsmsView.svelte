@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, untrack } from 'svelte';
+  import Button from '../../components/Button.svelte';
   import Link from '../../components/Link.svelte';
   import Notice from '../../components/Notice.svelte';
   import Sheet from '../../components/Sheet.svelte';
@@ -251,6 +252,9 @@
 
   const loading = $derived($t('common.loading'));
 
+  /** The document type of the second column: the form's when a document is created, else the address's or the open document's. */
+  let listKind = $derived(route === 'isms.documents.new' ? formKind : kind);
+
   let levels: Level[] = $derived.by(() => {
     const chain: Level[] = [
       {
@@ -262,9 +266,9 @@
       },
     ];
     if (route !== 'isms') {
-      const listKind = route === 'isms.documents.new' ? formKind : kind;
       chain.push({
-        key: `documents:${listKind ?? ''}`,
+        // The key does not hold the type: a deep link learns it only when a read answers, and the column must not remount.
+        key: 'documents',
         kind: 'category',
         kindLabel: $t('isms.kind.type'),
         title: listKind ? kindName($messagesStore, ISMS_CATEGORY, listKind) : $t('isms.types.all'),
@@ -334,7 +338,15 @@
 {:else}
   {#if failure}
     <div class="isms__failure">
-      <Notice tone="danger" title={$t(failure)} live />
+      <Notice tone="danger" title={$t(failure)} live>
+        {#snippet actions()}
+          {#if failures.schema}
+            <Button onclick={() => (schemaAttempt += 1)} data-testid="schema-retry">
+              {$t('common.retry')}
+            </Button>
+          {/if}
+        {/snippet}
+      </Notice>
     </div>
   {/if}
   {#snippet blocked()}
@@ -360,12 +372,12 @@
           selected={kind}
           all={route === 'isms.documents' && !query.kind}
         />
-      {:else if level.key.startsWith('documents:')}
+      {:else if level.key === 'documents'}
         {#if forbidden}
           {@render blocked()}
         {:else}
           <DocumentsColumn
-            kind={level.key === 'documents:' ? null : level.key.slice('documents:'.length)}
+            kind={listKind}
             documents={documents?.list ?? null}
             truncated={documents?.truncated ?? false}
             selected={documentId ?? null}

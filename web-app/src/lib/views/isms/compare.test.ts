@@ -193,8 +193,34 @@ describe('what cannot be compared', () => {
   it('tells the refusal of the server in its words when the pair is not one it compares', async () => {
     await open(POLICY, { from: 'v2' });
     expect(await screen.findByTestId('compare-refused')).toHaveTextContent(
-      'Some entries are not valid. Correct the marked fields.',
+      'These two versions could not be compared.',
     );
+    expect(screen.getByTestId('compare-refused')).not.toHaveTextContent('Some entries');
+  });
+
+  it('words the refusal of a pair in German', async () => {
+    await open(POLICY, { from: 'v3', to: 'v2' }, 'de');
+    expect(await screen.findByTestId('compare-refused')).toHaveTextContent(
+      'Diese beiden Versionen konnten nicht verglichen werden.',
+    );
+  });
+
+  it('compares what the address names even when the document has one release only', async () => {
+    await open(AUDIT_2025, { from: 'v1' });
+    expect(await screen.findByTestId('compare-refused')).toBeInTheDocument();
+    expect(screen.queryByTestId('compare-too-few')).toBeNull();
+  });
+
+  it('says that the revisions could not be read, not that the document does not exist', async () => {
+    await useProfile('workshop', 'en', {
+      [`GET /api/v1/documents/isms-core/${POLICY}/revisions`]: new Response(
+        JSON.stringify({ outcome: 'GIT_UNAVAILABLE' }),
+        { status: 503, headers: { 'Content-Type': 'application/json' } },
+      ),
+    });
+    render(DocumentCompareView, { params: { ismsdocument: POLICY }, query: {} });
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
+    expect(screen.queryByTestId('not-found-view')).toBeNull();
   });
 
   it('is the not-found view for a document that does not exist', async () => {

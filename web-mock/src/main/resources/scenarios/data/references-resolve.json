@@ -176,7 +176,7 @@
       "retired": false
     },
     {
-      "ref": "organisation",
+      "ref": "team:organisation",
       "found": true,
       "title": "Organisation",
       "address": null,

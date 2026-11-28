@@ -240,6 +240,8 @@ test.describe('the sheet of an ISMS document (UC-ISMS-1)', () => {
     await expect(sheet).toContainText('Review due');
     await expect(sheet).toContainText('May 20, 2027');
     await expect(sheet).not.toContainText('overdue');
+    // A released document without a change shows no warning on any row: its `applies-to` reference is a well-formed one.
+    await expect(sheet).not.toContainText('Check this row');
     await expect(page.getByTestId('release-block')).toContainText('Released by Noor Haddad');
     await expect(page.getByTestId('release-block')).toContainText(`${POLICY.tag}/v3`);
     await expect(page.getByTestId('compare-block')).toContainText('Compare releases');
@@ -528,7 +530,7 @@ test.describe('the comparison of two releases (UC-ISMS-1)', () => {
     await expect(page.getByTestId('compare-show')).toBeVisible();
     // The mock routes three pairs of this document; another pair is the validation answer of the server.
     await page.goto(compareAddress(POLICY, 'v3', 'v2'));
-    await expect(page.getByTestId('compare-refused')).toContainText('Some entries are not valid');
+    await expect(page.getByTestId('compare-refused')).toContainText('These two versions could not be compared');
     await expectNoSeriousViolations(page, 'isms compare refused');
   });
 
@@ -912,7 +914,7 @@ test.describe('the save of an ISMS document (UC-ISMS-1, UC-DOC-4)', () => {
     await expect(page.getByTestId('save-state')).toHaveAttribute('data-state', 'failed');
     await expect(page.getByTestId('save-state')).toContainText('Some entries need a correction');
     await expect(field(page, '/owner')).toContainText('This reference leads nowhere');
-    await expect(page.getByTestId('failure-notice')).toContainText('Some entries are not valid');
+    await expect(page.getByTestId('failure-notice')).toContainText('These two versions could not be compared');
     await expect(field(page, '/title').getByRole('textbox')).toHaveValue(
       'Information security policy, 2027',
     );

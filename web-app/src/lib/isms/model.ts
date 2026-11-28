@@ -6,7 +6,7 @@
  * Nothing here touches the network or a component.
  */
 import type { Category, Revision } from '../api/types';
-import { daysFrom } from '../format';
+import { daysFrom, parseInstant } from '../format';
 import { formatAddress } from '../routes';
 
 /** The category of the ISMS, for the texts of the form and the transitions. */
@@ -165,10 +165,12 @@ export interface Review {
 /**
  * @param date the review date of the document's value, or anything else
  * @param now the present
- * @returns where the review stands; `null` for a document without a date, which has no review
+ * @returns where the review stands; `null` for a document without a date (or with one that is none), which has no review
  */
 export function reviewOf(date: unknown, now: Date): Review | null {
   if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+  // A date of the shape that is none (`2026-13-45`) has no standing; it is not told as an overdue review of NaN days.
+  if (Number.isNaN(parseInstant(date).getTime())) return null;
   const days = daysFrom(date, now);
   return {
     date,

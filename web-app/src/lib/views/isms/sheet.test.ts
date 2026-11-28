@@ -55,6 +55,25 @@ const statements = () => screen.getByLabelText(/^Policy statements/);
 const writes = (kit: Kit, method: string, path: string) =>
   kit.requests.filter((request) => request === `${method} ${path}`).length;
 
+describe('when the schema cannot be read', () => {
+  it('offers to read it again and shows the sheet once it is read', async () => {
+    await useProfile('workshop');
+    const read = apiClient.getCategorySchema.bind(apiClient);
+    vi.spyOn(apiClient, 'getCategorySchema')
+      .mockImplementation(read)
+      .mockRejectedValueOnce(new ApiError('GIT_UNAVAILABLE', 503, [], {}));
+    render(IsmsView, {
+      route: 'isms.document',
+      params: { ismsdocument: POLICY },
+      query: {},
+      onnavigate: vi.fn(),
+    });
+    await fireEvent.click(await screen.findByTestId('schema-retry'));
+    expect(await screen.findByTestId('document-sheet')).toBeInTheDocument();
+    expect(screen.queryByTestId('schema-retry')).toBeNull();
+  });
+});
+
 describe('reading a document', () => {
   it('shows the record of a policy: its type, state, version, last save and review date', async () => {
     await open('workshop', POLICY);
@@ -67,6 +86,7 @@ describe('reading a document', () => {
     expect(sheet).toHaveTextContent(/Version\s*3\s*Last saved/);
     expect(sheet).toHaveTextContent('Alex Example, May 20, 2026');
     expect(sheet).toHaveTextContent(/Review due\s*May 20, 2027/);
+    expect(sheet).not.toHaveTextContent('Check this row');
     expect(screen.getByLabelText(/^Title/)).toHaveValue('Information security policy');
     expect((statements() as HTMLTextAreaElement).value).toContain(
       'The management of the organisation',

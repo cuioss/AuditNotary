@@ -167,7 +167,7 @@ xref:../specification/rest-api.adoc#_decided_isms[REST API Register, Open Questi
   computed, and the Due lens lists the reviews of released entries only.
 
 Decided provisionally with the documents of the ISMS lens (UC-ISMS-1), recorded in
-xref:../specification/rest-api.adoc#_decided_isms[REST API Register, Open Questions] (points 77 to 82); the owner may change each one:
+xref:../specification/rest-api.adoc#_decided_isms[REST API Register, Open Questions] (points 77 to 84); the owner may change each one:
 
 . The first column of the lens lists the four document types with their counts and the way into the risk register; the documents of a
   type are the second column, the document its sheet. The sheet, the release and the earlier states are those of the generic lens on the
@@ -177,7 +177,9 @@ xref:../specification/rest-api.adoc#_decided_isms[REST API Register, Open Questi
   between two releases are read with `?at=` on the sheet.
 . The review date of a document is a fact under its title, in words and without a colour of its own; the list shows none, because the
   summary of a document has no review date. Whether it should is an owner question.
-. A policy that applies to everyone names the reference `organisation`; no specification says what that is.
+. A policy that applies to everyone names the reference `team:organisation`; no specification says that the team catalog holds it.
+. Opening a document from *All documents* shows the list of its type, because the address of a sheet carries no `kind`.
+. A comparison the server refuses is worded by the page, not by the form.
 
 == Related
 
