@@ -94,6 +94,14 @@ addresses and paths of both (`releaseAddress`, `releasePath`, `diffPath`, `newIn
 each (`loginToRelease`, `loginToNew`) and `withOpenDeadlines`, which gives the incident of a read the four deadlines of the
 card data, because no incident of the mock in review has a deadline still open; the first test of `incidents.spec.js`
 compares the fixtures with the mock
+
+|`tests/helpers/isms.js`
+|The addresses and paths of the lens ISMS (the documents), the static fixtures (the four document types with their counts and
+their German names, the eight documents of the mock in the order of the list, the document that `isms-document-created` adds)
+and the shared steps: the sign-in at an address, at a sheet, at the comparison and at the release page (`loginToIsms`,
+`loginToSheet`, `loginToCompare`, `loginToRelease`, each with the clock pinned by `pinClock` of `incidents.js`), the ids of the
+rows of the list (`listedIds`) and `countDiffReads`, which counts the reads of a diff so that a test can say that the same
+version on both sides asks the server for none
 |===
 
 == Specs
@@ -229,6 +237,22 @@ the new incident with the history replaced and the year and the years read again
 and `STEP_UP_REQUIRED`, which the test answers itself for that one create, the Git server down, a year without a repository,
 no right, a year that is not the current one, the question before the form is left) and German
 
+|`isms.spec.js`
+|The documents of the lens ISMS (UC-ISMS-1, AUN-WEB-3, AUN-WEB-4, AUN-WEB-6), against `workshop`, `read-only`, `release`,
+`empty` and the `isms-document-*` and `isms-git-unavailable` states: the types with their counts and the way to the register,
+the list of a type and of every type (the order, the state and the release of each row), a person who may not read the
+documents, the empty installation, the act *New document* of a person who may only read; the sheet (the review date as
+a fact in words, overdue and due soon as of the pinned day, an earlier state read as it was, the way to compare the last two
+releases, a document with fewer than two releases, an address and an earlier state that do not exist); the comparison of
+two releases (the pickers over the releases and the current state, the pairs of neighbouring releases, the three pairs of the
+policy and the one of the scope, the changes field by field with the value before struck out and the value after marked, the
+same version refused at the pickers and at the address with no request, two equal versions through a patched read, a version
+that does not exist, the validation answer of a pair the mock does not route, a document with one release, the breadcrumb);
+a new document (the form of a type, the first save that lands on the new document, the choice of the type, a type that is none
+of the four, a person who may only read, the Git server down); the review and release (the diff since the last release, the
+act that reads only "Release" or "Freigeben", the fresh login before the release, the release without it, the Git server
+down, no approve right, a draft, an unknown document); the conflict and the refusals of a save; and German
+
 |`theme-readability.spec.js`
 |The axe-core audit of every view in both themes, and of the states of the documents lens, the release, the palette, the
 catalogs lens, the directory pages, the SAMM completion (the forms with their refusals and notices, the targets, the
@@ -240,7 +264,10 @@ their tables and dialogs, the last page, the refusals of a create and the questi
 years and what stands in their place, the list of a year, the sheet in every state of its stages and of its clock, the notices,
 the refusals and questions of a stage, the conflict and the refusals of a save, the report, the incident in review and the
 released one, the deadlines in Due, the release of an incident with its deadlines, seal, refusals and confirmation, and the
-form of a new incident with its refusals, its questions and its blocked states)
+form of a new incident with its refusals, its questions and its blocked states) and the lens ISMS (the types, the
+lists, the sheet with its review dates, its earlier state, its conflict and its refusals, the comparison in each of its
+states, the form of a new document and the release with its seal and its refusals), each in both themes and in both
+languages
 
 |`fonts.spec.js`
 |Every request stays on the own origin, and Inter is loaded
@@ -260,15 +287,17 @@ wizard; in the lens Incidents the years and the rows of a year, the sheet with i
 inside the screen, the notices as stacked rows, the refusal of a stage with its fields as targets, the question to save first,
 the question for the password and the conflict inside the window, the report, the released incident and the deadlines in
 Due, the release of an incident (the record in groups, the open deadlines, the refusal with its links, the confirmation) and
-the form of a new incident (its fields and act as targets, its refusals and the questions inside the window); axe on each
-page
+the form of a new incident (its fields and act as targets, its refusals and the questions inside the window); in the lens
+ISMS the types, the documents of a type and the sheet (the way to compare as a target), the comparison (the pickers, the act
+and the pairs as targets, the changes inside the screen, the refused and the too-few states), the release (the act and the
+way back as targets) and the form of a new document with the choice of its type; axe on each page
 |===
 
 A new view gets its address in `navigation.spec.js` and its audit in `theme-readability.spec.js`; a new profile of
 `web-mock` gets the spec of the flow it exists for.
 
-The clock of the page is the real one. A spec that tells a deadline (`incidents.spec.js`, `incidents-release.spec.js`, the audit rows and the phone checks
-of the lens Incidents) pins it with `pinClock` to `2026-11-26T10:00:00Z`, the instant the mock reads at, and a test that wants
+The clock of the page is the real one. A spec that tells a deadline or a review date (`incidents.spec.js`, `incidents-release.spec.js`, `isms.spec.js`, the audit rows and the
+phone checks of the lenses Incidents and ISMS) pins it with `pinClock` to `2026-11-26T10:00:00Z`, the instant the mock reads at, and a test that wants
 another day (a deadline the page has overtaken) pins that and reloads.
 
 A test that depends on the state of the mock says so: `useScenario` checks that the mock answered the profile and the
