@@ -212,6 +212,15 @@ describe('AppRouter', () => {
     ['/categories/test-note/01JZ8W1E3G5J7M9P1R3T5X7Z9B', 'documents-view'],
     ['/categories/test-note/01JZ8W1E3G5J7M9P1R3T5X7Z9B?at=v1', 'documents-view'],
     ['/categories/test-note/01JZ8W1E3G5J7M9P1R3T5X7Z9B/release', 'release-view'],
+    ['/isms', 'isms-view'],
+    ['/isms/documents', 'isms-view'],
+    ['/isms/documents?kind=policy', 'isms-view'],
+    ['/isms/documents/new?kind=policy', 'isms-view'],
+    ['/isms/documents/01JZB1C3E5G7J9M1P3R5T7W9Y2', 'isms-view'],
+    ['/isms/documents/01JZB1C3E5G7J9M1P3R5T7W9Y2?at=v1', 'isms-view'],
+    ['/isms/documents/01JZB1C3E5G7J9M1P3R5T7W9Y2/compare', 'document-compare-view'],
+    ['/isms/documents/01JZB1C3E5G7J9M1P3R5T7W9Y2/compare?from=v1&to=v2', 'document-compare-view'],
+    ['/isms/documents/01JZB1C3E5G7J9M1P3R5T7W9Y2/release', 'release-view'],
     ['/catalogs/team', 'catalogs-view'],
     ['/catalogs/service/payment-api', 'catalogs-view'],
     ['/catalogs/service/new', 'catalogs-view'],
@@ -246,18 +255,19 @@ describe('AppRouter', () => {
     vi.spyOn(apiClient, 'getThreatModel').mockReturnValue(new Promise(() => {}));
     vi.spyOn(apiClient, 'getCategorySchema').mockReturnValue(new Promise(() => {}));
     vi.spyOn(apiClient, 'getRiskRegister').mockReturnValue(new Promise(() => {}));
+    vi.spyOn(apiClient, 'listDocuments').mockReturnValue(new Promise(() => {}));
+    vi.spyOn(apiClient, 'getDocument').mockReturnValue(new Promise(() => {}));
+    vi.spyOn(apiClient, 'listRevisions').mockReturnValue(new Promise(() => {}));
+    vi.spyOn(apiClient, 'getDiffBetween').mockReturnValue(new Promise(() => {}));
     vi.spyOn(apiClient, 'subscribeEvents').mockReturnValue(() => {});
     const [path, search = ''] = pathname.split('?');
     render(AppRouter, { pathname: path, search: search ? `?${search}` : '', onnavigate: () => {} });
     expect(await screen.findByTestId(testId)).toBeInTheDocument();
   });
 
-  it('names the route of a lens view', async () => {
-    render(AppRouter, { pathname: '/isms/documents/policy/release', onnavigate: () => {} });
-    expect(await screen.findByTestId('lens-route')).toHaveAttribute(
-      'data-route',
-      'isms.document.release',
-    );
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Release');
+  it('names the route of a lens view that is not built yet', async () => {
+    render(AppRouter, { pathname: '/isms/risks', onnavigate: () => {} });
+    expect(await screen.findByTestId('lens-route')).toHaveAttribute('data-route', 'isms.risks');
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('ISMS');
   });
 });

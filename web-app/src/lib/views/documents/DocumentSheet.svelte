@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onDestroy, onMount, untrack } from 'svelte';
+  import { onDestroy, onMount, untrack, type Snippet } from 'svelte';
   import Button from '../../components/Button.svelte';
   import Chip from '../../components/Chip.svelte';
   import HistoryList from '../../components/HistoryList.svelte';
@@ -58,6 +58,17 @@
     onrefresh: () => void;
     /** Opens an address inside the app. */
     onnavigate: (href: string) => void;
+    /**
+     * The address of the document as it was at a revision (`null` for the current state), for a lens that has addresses of
+     * its own for its documents; the address of the generic lens by default.
+     */
+    addressFor?: (ref: string | null) => string;
+    /** The address of the review and release of the document; the generic lens's by default. */
+    releaseAddress?: string;
+    /** Facts of the lens's document type, after the version and the save, such as the review date. */
+    moreFacts?: { term: string; value: string }[];
+    /** What the lens adds to the margin, between the release and the earlier states (a link to the comparison). */
+    aside?: Snippet;
   }
 
   let {
@@ -69,6 +80,10 @@
     revisionsFailed = false,
     onrefresh,
     onnavigate,
+    addressFor,
+    releaseAddress,
+    moreFacts = [],
+    aside,
   }: Props = $props();
 
   let announcement = $state('');
@@ -87,16 +102,19 @@
   let part = $derived(doc.parts[partName]);
   let canEdit = $derived(rights.includes('edit') && !switchedOff && reading === null);
   let address = $derived(
-    formatAddress({
-      route: 'categories.document',
-      params: { category: category.id, document: doc.id },
-    }),
+    addressFor
+      ? addressFor(null)
+      : formatAddress({
+          route: 'categories.document',
+          params: { category: category.id, document: doc.id },
+        }),
   );
   let releaseHref = $derived(
-    formatAddress({
-      route: 'categories.release',
-      params: { category: category.id, document: doc.id },
-    }),
+    releaseAddress ??
+      formatAddress({
+        route: 'categories.release',
+        params: { category: category.id, document: doc.id },
+      }),
   );
 
   // The first draw already knows the document: the controller is told before anything is drawn. The sheet belongs to one
@@ -303,6 +321,7 @@
           },
         ]
       : []),
+    ...moreFacts,
   ]);
 </script>
 
@@ -519,8 +538,10 @@
           failed={revisionsFailed}
           {reading}
           {onnavigate}
+          {addressFor}
         />
       </section>
+      {#if aside}{@render aside()}{/if}
       <section class="margin__block">
         <h2 class="margin__title">{$t('sheet.history')}</h2>
         <HistoryList

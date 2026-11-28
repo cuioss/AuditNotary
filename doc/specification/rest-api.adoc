@@ -6284,6 +6284,54 @@ refuses the create under multi-factor with a notice, or leaving the loss.
   after a re-read diff that carries a change saved meanwhile (`risk-release-changed-reviewed`) releases that change with the version
   (`risk-released-changed`).
 
+*Decided provisionally with the documents of the lens ISMS* (the web app, UC-ISMS-1; points 77 to 82 go on from 76; the risk
+register is the next part of the lens):
+
+[start=77]
+. *The documents are three levels of the chain.* The first column lists the four document types of `isms-core` (*Policy*,
+  *Scope of the ISMS*, *Audit report*, *Management review*, in that order) after a row *All documents*, each with how many
+  documents it holds and how many are in review, and, below a hairline, the way into the risk register; the register's own
+  figures are those of the next part. The second column is the list of one type (`/isms/documents?kind=`) or of every type
+  (`/isms/documents`, newest change first, each row naming its type); the object is the sheet of a document, the form of a new
+  one, or the sheet of an earlier state. The lens reads the one list `GET /api/v1/documents/isms-core` (point 52) and groups and
+  counts it in the browser, so it has no request of its own. A row says the state, the release the document holds (`Last release
+  v3, 20 May 2026`: a document is released more than once, so the version of the last release is how many there were) and, for a
+  document that is not released, the working version with who changed it last. A person who may not read `isms-core` is told so in
+  place of the lists and still finds the register.
+. *The sheet and the release of a document are the generic ones, drawn on the addresses of the lens.* The category `isms` is no
+  generic category (`GET /api/v1/categories` does not list it and the rail's lens *Documents* does not show it), so the web app
+  knows the four types and the repository `isms-core` itself and reads the schema with `GET /api/v1/categories/isms/schema`
+  (<<_isms_data>>); the sheet, the steps of the workflow, the conflicts, the earlier states (`?at=`) and the release page
+  (`ReleaseFlow`: the diff since the last release `v<n>`, the step-up, the seal and the notary after the release) are the
+  components of the generic lens with the addresses of this one. The labels are the catalogue keys `category.isms.<kind>.field.<path>`
+  of the web app (point 56); the step *Submit for review* is `category.isms.transition.isms.submit`, the release reads *Release*.
+. *The comparison is a page, and it compares releases.* `/isms/documents/<id>/compare?from=&to=` reads
+  `GET …/diff?from=<revision>&to=<revision>` (<<_requests>>, point 57) with the references of the pickers,
+  which are the releases of the document as `GET …/revisions` lists them (`v1`, `v2`, …); the later side may be the current
+  state (the page then sends no `to`). Without `from` the page lists the pairs of neighbouring releases, newest first, besides the two
+  pickers; a document with fewer than two releases says that a comparison needs two. The same version on both sides is
+  refused on the page, without a request. The pickers do not offer the commits between two releases (they are read with `?at=` on
+  the sheet), and the sheet offers the comparison of its two latest releases from the second release on. The changes are those of the
+  release page, grouped by property and read as the form reads them (a person by the name, a reference by its title).
+. *The review date is a fact under the title.* The sheet reads `/review-due` of the document's value and says where it stands
+  against today (point 62): the date alone when it is more than 30 days ahead, the date and the days when it is within 30 days or
+  overdue, in words, in the ink of the text, with no box and no colour of its own (a review that needs a person is the Due lens's
+  item). An earlier state shows the date it held, with no standing. The list rows show no review date, because the summary of a
+  document (`GET /api/v1/documents/{repository}`) has none.
+. *A first save of a document needs only the title,* as the first save of a risk does (point 61): the other mandatory fields stop the
+  submit (`MANDATORY_FIELDS_MISSING`), which the sheet lists as ways to the fields. A new document is the form of its type at
+  `/isms/documents/new?kind=`, holds its value in the page until the first save, asks before the page is left, and moves to the
+  address the `201` names in place of its own; without `kind` the four types are offered as a choice, and a type the category does
+  not have (the risk among them) is the not-found view.
+. *A policy that applies to the whole organisation names the reference `organisation`.* The data of the mock does so (`applies-to`
+  of the three policies); no specification says what such a reference is. The mock's `GET /api/v1/references/resolve` answers it
+  (title *Organisation*, no address) so that the sheet does not show *Not found* for a released policy.
+
+For the owner, besides the questions of the earlier points: whether the summary of a document in `GET /api/v1/documents/{repository}`
+should carry its review date, so that a list could show the reviews that fall due (80); whether the comparison should offer the commits
+between two releases and the working state as the earlier side (79); whether `organisation` is a reference at all, or a policy that
+applies to everyone should say so with a field of its own (82).
+
 For the owner: whether the categories of the ISMS should be one workflow or one per type, and whether a document may be
 released once only (53); whether a generated page of the ISMS documents belongs in the web app (55); the fields of the five
 types, above all the mandatory ones, the vocabularies of the rating and the treatment (which are those of the Reports step, not

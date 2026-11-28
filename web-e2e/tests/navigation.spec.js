@@ -6,6 +6,7 @@ import { login, loginLocal } from './helpers/login.js';
  * AUN-WEB-3: the lenses on the rail (the ninth, Documents, where a generic category exists), one canonical address per view, and a reload restores it.
  */
 const NOTE = '01JZ8W1E3G5J7M9P1R3T5X7Z9B';
+const POLICY = '01JZB1C3E5G7J9M1P3R5T7W9Y2';
 
 // [address, view, lens in the breadcrumb, page title]
 const ADDRESSES = [
@@ -44,8 +45,16 @@ const ADDRESSES = [
   ['/incidents/2026/01JZ8M3N5P7R9T1V3X5Z7B9D1F?at=v1', 'incidents-view', 'Incidents', 'Incidents'],
   // Part B of the lens (the new incident and the release) shows the placeholder until it is built.
   ['/incidents/2026/new', 'incidents-view', 'Incidents', 'Incidents'],
+  // The risk register is the next part of the lens ISMS and shows the placeholder until it is built.
   ['/isms/risks/r-012', 'lens-view', 'ISMS', 'ISMS'],
-  ['/isms/documents/policy-access', 'lens-view', 'ISMS', 'ISMS'],
+  ['/isms', 'isms-view', 'ISMS', 'ISMS'],
+  ['/isms/documents', 'isms-view', 'ISMS', 'ISMS'],
+  ['/isms/documents?kind=policy', 'isms-view', 'ISMS', 'ISMS'],
+  ['/isms/documents/new?kind=policy', 'isms-view', 'ISMS', 'ISMS'],
+  [`/isms/documents/${POLICY}`, 'isms-view', 'ISMS', 'ISMS'],
+  [`/isms/documents/${POLICY}?at=v1`, 'isms-view', 'ISMS', 'ISMS'],
+  [`/isms/documents/${POLICY}/compare?from=v2&to=v3`, 'document-compare-view', 'ISMS', 'ISMS'],
+  [`/isms/documents/${POLICY}/release`, 'release-view', 'ISMS', 'Release'],
   // The generic documents lens (rest-api.adoc, The Generic Documents Lens). `/categories` is no entry here: with one
   // category the lens opens it in place of this address (the test below).
   ['/categories/test-note', 'documents-view', 'Documents', 'Documents'],

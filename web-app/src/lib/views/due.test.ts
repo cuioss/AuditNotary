@@ -1,6 +1,7 @@
 import { render, screen, within } from '@testing-library/svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { apiClient } from '../api/client';
+import { parseHref } from '../routes';
 import type { DueItem } from '../api/types';
 import { N2, N4, N5, resetKit, useProfile } from './documents/testkit';
 import DueView from './DueView.svelte';
@@ -194,5 +195,46 @@ describe('the events', () => {
     expect(screen.getByTestId('due-list')).toBeInTheDocument();
     expect(screen.queryByRole('alert')).toBeNull();
     view.unmount();
+  });
+});
+
+describe('the reviews of the ISMS', () => {
+  const SCOPE = '01JZB4F6H8K0N2Q4S6V8X0Z2C5';
+  const ACCESS = '01JZB2D4F6H8K0N2Q4S6V8X0Z3';
+
+  it('opens the documents of the lens ISMS, which are views of the app', async () => {
+    // The mock's day, so that the review dates read the same on every day the suite runs.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-26T10:00:00Z'));
+    await useProfile('workshop');
+    render(DueView);
+    await screen.findByTestId('due-list');
+    for (const [title, id] of [
+      ['Scope of the ISMS', SCOPE],
+      ['Access control policy', ACCESS],
+    ]) {
+      const entry = entryOf(title);
+      expect(entry).toHaveAttribute('data-kind', 'review');
+      expect(entry).toHaveAttribute('data-lens', 'isms');
+      expect(within(entry).getByRole('link')).toHaveAttribute('href', `/isms/documents/${id}`);
+      expect(parseHref(`/isms/documents/${id}`)?.route).toBe('isms.document');
+    }
+    expect(entryOf('Scope of the ISMS')).toHaveTextContent('Review in ISMS');
+  });
+
+  it('opens the risks of the register at an address the app knows', async () => {
+    await useProfile('workshop');
+    render(DueView);
+    await screen.findByTestId('due-list');
+    const risk = entryOf('Risk R-007: Signing keys held by a single administrator');
+    expect(within(risk).getByRole('link')).toHaveAttribute('href', '/isms/risks/r-007');
+    expect(parseHref('/isms/risks/r-007')?.route).toBe('isms.risk');
+  });
+
+  it('is read in German', async () => {
+    await useProfile('workshop', 'de');
+    render(DueView);
+    await screen.findByTestId('due-list');
+    expect(entryOf('Scope of the ISMS', 'de')).toHaveTextContent('Prüfung in ISMS');
   });
 });

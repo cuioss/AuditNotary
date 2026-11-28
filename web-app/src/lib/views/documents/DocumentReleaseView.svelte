@@ -1,9 +1,32 @@
+<script lang="ts" module>
+  import type { Category } from '../../api/types';
+
+  /**
+   * A lens that has a category and addresses of its own for the release of its documents (the ISMS): the review and the
+   * release are the generic ones, drawn on its addresses.
+   */
+  export interface DocumentLens {
+    /** The category, known to the lens; the generic lens reads it from the categories. */
+    category: Category;
+    /** The id of the document. */
+    document: string;
+    /** The address of the document. */
+    documentAddress: string;
+    /** The address of its release page. */
+    releaseAddress: string;
+    /** The breadcrumb up to, not including, the document. */
+    crumbs: { label: string; href: string }[];
+    /** Whether the fields of the type have short labels and long values. */
+    shortLabels?: boolean;
+  }
+</script>
+
 <script lang="ts">
   import { onDestroy, untrack } from 'svelte';
   import ReleaseSeal from '../../components/ReleaseSeal.svelte';
   import { apiClient } from '../../api/client';
   import { errorMessageKey, isApiError } from '../../api/errors';
-  import type { Category, CategorySchema, DocumentDiff, DocumentRead } from '../../api/types';
+  import type { CategorySchema, DocumentDiff, DocumentRead } from '../../api/types';
   import {
     actionsOn,
     categoryName,
@@ -43,9 +66,14 @@
   interface Props {
     /** The values of the address: `category` and `document`. */
     params: Record<string, string>;
+    /** What a lens with addresses of its own hands in; without it the address names the category and the document. */
+    lens?: DocumentLens;
   }
 
-  let { params }: Props = $props();
+  let { params, lens }: Props = $props();
+
+  /** The id of the document: the lens's or the address's. */
+  let documentId = $derived(lens?.document ?? params.document);
 
   // One reading of references for the whole record: the names of people and the titles of documents are asked once.
   provideFormServices(createFormServices());
@@ -64,7 +92,7 @@
   async function readRecord(current: Category) {
     const read = ++latest;
     try {
-      const loaded = await findDocument(apiClient, current, params.document);
+      const loaded = await findDocument(apiClient, current, documentId);
       const [loadedSchemas, loadedDiff] = await Promise.all([
         schemas?.category === current.id ? schemas : apiClient.getCategorySchema(current.id),
         // A released document has nothing to release: its record is the release it was made from, unchanged.
@@ -100,6 +128,11 @@
 
   async function load() {
     failure = null;
+    if (lens) {
+      category = lens.category;
+      await readRecord(lens.category);
+      return;
+    }
     try {
       const list = await loadCategories();
       const found = list.categories.find((entry) => entry.id === params.category);
@@ -121,7 +154,7 @@
 
   $effect(() => {
     void params.category;
-    void params.document;
+    void documentId;
     untrack(() => void load());
   });
 
@@ -131,26 +164,30 @@
   });
 
   let documentAddress = $derived(
-    formatAddress({
-      route: 'categories.document',
-      params: { category: params.category, document: params.document },
-    }),
+    lens?.documentAddress ??
+      formatAddress({
+        route: 'categories.document',
+        params: { category: params.category, document: params.document },
+      }),
   );
   let releaseAddress = $derived(
-    formatAddress({
-      route: 'categories.release',
-      params: { category: params.category, document: params.document },
-    }),
+    lens?.releaseAddress ??
+      formatAddress({
+        route: 'categories.release',
+        params: { category: params.category, document: params.document },
+      }),
   );
 
   $effect(() => {
     breadcrumb.set(
       !missing && category && doc
         ? [
-            {
-              label: categoryName($messagesStore, category.id),
-              href: `/categories/${category.id}`,
-            },
+            ...(lens?.crumbs ?? [
+              {
+                label: categoryName($messagesStore, category.id),
+                href: `/categories/${category.id}`,
+              },
+            ]),
             { label: doc.title, href: documentAddress },
             { label: $t('lens.release'), href: releaseAddress },
           ]
@@ -318,6 +355,7 @@
     {groups}
     {unavailable}
     {checks}
+    shortLabels={lens?.shortLabels ?? false}
     backHref={documentAddress}
     openHref={documentAddress}
     fieldLabel={labelOf}

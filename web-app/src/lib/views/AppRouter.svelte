@@ -1,6 +1,7 @@
 <script lang="ts">
   import { hasNoRights } from '../access/access';
   import { lensOf, parseAddress, routesUnder, routeTitleKey } from '../routes';
+  import { DOCUMENT_ROUTES } from '../isms/model';
   import { session } from '../stores/app';
   import LoginProblemView from './access/LoginProblemView.svelte';
   import LoginView from './access/LoginView.svelte';
@@ -21,6 +22,9 @@
   import SammView from './samm/SammView.svelte';
   import IncidentReleaseView from './incidents/IncidentReleaseView.svelte';
   import IncidentsView from './incidents/IncidentsView.svelte';
+  import DocumentCompareView from './isms/DocumentCompareView.svelte';
+  import IsmsDocumentReleaseView from './isms/IsmsDocumentReleaseView.svelte';
+  import IsmsView from './isms/IsmsView.svelte';
   import ReportsView from './reports/ReportsView.svelte';
   import RiskRegisterView from './reports/RiskRegisterView.svelte';
   import SammCompareView from './reports/SammCompareView.svelte';
@@ -98,6 +102,16 @@
   {/key}
 {:else if lensOf(route) === 'incidents' && address}
   <IncidentsView {route} params={address.params} query={address.query} {onnavigate} />
+{:else if route === 'isms.document.release' && address}
+  {#key address.params.ismsdocument}
+    <IsmsDocumentReleaseView params={address.params} />
+  {/key}
+{:else if route === 'isms.document.compare' && address}
+  {#key address.params.ismsdocument}
+    <DocumentCompareView params={address.params} query={address.query} />
+  {/key}
+{:else if DOCUMENT_ROUTES.includes(route) && address}
+  <IsmsView {route} params={address.params} query={address.query} {onnavigate} />
 {:else if route === 'reports'}
   <ReportsView />
 {:else if route === 'reports.samm-trend'}

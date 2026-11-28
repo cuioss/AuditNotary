@@ -37,9 +37,22 @@
     canCreate: boolean;
     /** Opens an address inside the app; `replace` takes the new document's place in the history. */
     onnavigate: (href: string, options?: { replace?: boolean }) => void;
+    /** The address of the form of a document type, for a lens that has addresses of its own; the generic lens's by default. */
+    newAddress?: (kind: string) => string;
+    /** The address the way back leads to when the person may not create: the category's list by default. */
+    backAddress?: string;
   }
 
-  let { category, kind, schema, repository, canCreate, onnavigate }: Props = $props();
+  let {
+    category,
+    kind,
+    schema,
+    repository,
+    canCreate,
+    onnavigate,
+    newAddress,
+    backAddress,
+  }: Props = $props();
 
   /** The single part of a document type with one file. */
   const PART = 'data';
@@ -115,7 +128,9 @@
   <Sheet testId="new-document-sheet">
     <EmptyState icon="state.lock" title={$t('documents.list.new.no-right')}>
       {#snippet actions()}
-        <Link href="/categories/{category.id}">{$t('documents.revision.back')}</Link>
+        <Link href={backAddress ?? `/categories/${category.id}`}>
+          {$t('documents.revision.back')}
+        </Link>
       {/snippet}
     </EmptyState>
   </Sheet>
@@ -134,11 +149,13 @@
       {#each category.kinds as option (option.id)}
         <li>
           <Link
-            href={formatAddress({
-              route: 'categories.new',
-              params: { category: category.id },
-              query: { kind: option.id },
-            })}
+            href={newAddress
+              ? newAddress(option.id)
+              : formatAddress({
+                  route: 'categories.new',
+                  params: { category: category.id },
+                  query: { kind: option.id },
+                })}
             look="secondary"
             data-testid="choose-{option.id}"
           >

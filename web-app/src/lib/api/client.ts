@@ -892,6 +892,26 @@ export class ApiClient {
   }
 
   /**
+   * The structured diff between two states of a document, the comparison of two releases (UC-ISMS-1). PROVISIONAL: the
+   * specified request is `from=released`, see {@link getDiff}.
+   *
+   * @param repository the repository
+   * @param id the document id
+   * @param from the earlier revision: `v<n>` for a release, a commit id for any other state
+   * @param to the later revision; the current state without it
+   * @returns the diff, `from` and `to` the tags it compared
+   * @throws ApiError `NOT_FOUND` for a revision that does not exist, `VALIDATION` (`/from`, `/to`) with `FORMAT` or
+   * `REQUIRED`
+   */
+  getDiffBetween(repository: string, id: string, from: string, to?: string): Promise<DocumentDiff> {
+    const query = `from=${encodeURIComponent(from)}${to ? `&to=${encodeURIComponent(to)}` : ''}`;
+    return this.request<DocumentDiff>(
+      'GET',
+      `/api/v1/documents/${seg(repository)}/${seg(id)}/diff?${query}`,
+    );
+  }
+
+  /**
    * Keeps the user's work as a draft, for this user only (AUN-WEB-5).
    *
    * @param repository the repository
