@@ -96,10 +96,16 @@
     color: var(--color-text-primary);
   }
 
+  /* A name takes two lines before it is clipped: "Documents and register" stays readable in the 136 px of the strip. */
   .strip__name {
+    min-inline-size: 0;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow-wrap: anywhere;
+    line-height: 1.3;
   }
 
   .strip__return {

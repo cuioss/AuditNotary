@@ -226,6 +226,8 @@
     position: sticky;
     inset-block-start: calc(56px + var(--space-5));
     flex: 0 0 var(--strip-width);
+    /* A long name of a hidden level is clipped in the strip; it never widens the strip past the window's measure. */
+    min-inline-size: 0;
     padding-inline-end: var(--space-3);
   }
 

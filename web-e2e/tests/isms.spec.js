@@ -248,6 +248,12 @@ test.describe('the sheet of an ISMS document (UC-ISMS-1)', () => {
     const link = page.getByTestId('compare-link');
     await expect(link).toHaveText('Compare v2 and v3');
     await expect(link).toHaveAttribute('href', compareAddress(POLICY, 'v2', 'v3'));
+    // The strip of the hidden root level ("Documents and register") is clipped to its width: the page never scrolls sideways.
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await expect(page.getByTestId('triage-strip-left')).toBeVisible();
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+    ).toBe(true);
     await link.click();
     await expect(page).toHaveURL(compareAddress(POLICY, 'v2', 'v3'));
     await expect(page.getByTestId('compare-result')).toBeVisible();
@@ -418,6 +424,11 @@ test.describe('the comparison of two releases (UC-ISMS-1)', () => {
     );
     await expect(page.getByTestId('record-applies-to')).toContainText('Applies to');
     await expect(page.getByTestId('record-applies-to').locator('del')).toContainText('Payments');
+    // A reference inside a struck value is struck as well (an inline-flex wrapper does not inherit the strike).
+    await expect(page.getByTestId('record-applies-to').locator('del a')).toHaveCSS(
+      'text-decoration-line',
+      /line-through/,
+    );
     await expect(page.getByTestId('record-applies-to').locator('ins')).toContainText(
       'Organisation',
     );
@@ -552,14 +563,14 @@ test.describe('the comparison of two releases (UC-ISMS-1)', () => {
     await expect(page.getByTestId('not-found-view')).toBeVisible();
   });
 
-  test('the breadcrumb leads back to the documents and to the document', async ({
+  test('the breadcrumb leads back to the type and to the document', async ({
     page,
     request,
   }) => {
     await useScenario(request, 'workshop');
     await loginToCompare(page, POLICY, 'v2', 'v3');
     const crumbs = page.getByRole('navigation', { name: 'You are here' });
-    await expect(crumbs).toContainText('ISMS documents');
+    await expect(crumbs.getByRole('link', { name: 'Policy', exact: true })).toBeVisible();
     await expect(crumbs).toContainText(POLICY.title);
     await expect(crumbs).toContainText('Compare');
     await crumbs.getByRole('link', { name: POLICY.title }).click();
@@ -914,7 +925,7 @@ test.describe('the save of an ISMS document (UC-ISMS-1, UC-DOC-4)', () => {
     await expect(page.getByTestId('save-state')).toHaveAttribute('data-state', 'failed');
     await expect(page.getByTestId('save-state')).toContainText('Some entries need a correction');
     await expect(field(page, '/owner')).toContainText('This reference leads nowhere');
-    await expect(page.getByTestId('failure-notice')).toContainText('These two versions could not be compared');
+    await expect(page.getByTestId('failure-notice')).toContainText('Some entries are not valid');
     await expect(field(page, '/title').getByRole('textbox')).toHaveValue(
       'Information security policy, 2027',
     );

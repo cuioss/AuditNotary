@@ -141,6 +141,20 @@
     padding-inline: var(--space-1);
   }
 
+  /*
+   * A reference inside the removed value (a link to a team, a document, a person) stands in an inline-flex wrapper, so the
+   * strike of the value does not reach it: it is struck on its own and loses the colour of a live link.
+   */
+  .change__before :global(.resolved > *) {
+    text-decoration: line-through;
+    text-decoration-color: var(--color-danger);
+  }
+
+  .change__before :global(.resolved > a) {
+    color: inherit;
+    text-decoration-line: underline line-through;
+  }
+
   .change__after {
     align-self: flex-start;
     padding-inline: var(--space-1);

@@ -8,6 +8,7 @@
   import { apiClient } from '../../api/client';
   import { errorMessageKey, isApiError } from '../../api/errors';
   import type { DocumentDiff, DocumentRead, JsonSchema, Revision } from '../../api/types';
+  import { kindName } from '../../documents/categories';
   import { groupDiff } from '../../documents/diff';
   import { versionOfTag } from '../../documents/history';
   import { createFormServices, provideFormServices } from '../../forms/services';
@@ -166,7 +167,10 @@
     breadcrumb.set(
       !missing && doc
         ? [
-            { label: $t('isms.documents.title'), href: documentsAddress() },
+            {
+              label: kindName($messagesStore, ISMS_CATEGORY, doc.kind),
+              href: documentsAddress(doc.kind),
+            },
             { label: doc.title, href: documentAddress(doc.id) },
             { label: $t('isms.compare.crumb'), href: compareHref },
           ]

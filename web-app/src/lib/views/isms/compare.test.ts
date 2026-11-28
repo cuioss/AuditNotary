@@ -90,11 +90,11 @@ describe('the changes between two releases', () => {
     expect(screen.getAllByText(/change/).length).toBeGreaterThan(0);
   });
 
-  it('puts the comparison in the breadcrumb of the lens, after the document', async () => {
+  it('puts the comparison in the breadcrumb of the lens, after the type and the document', async () => {
     await open(POLICY, { from: 'v2', to: 'v3' });
     await screen.findByTestId('compare-result');
     expect(get(breadcrumb)).toEqual([
-      { label: 'ISMS documents', href: '/isms/documents' },
+      { label: 'Policy', href: '/isms/documents?kind=policy' },
       { label: 'Information security policy', href: `/isms/documents/${POLICY}` },
       { label: 'Compare', href: `/isms/documents/${POLICY}/compare` },
     ]);
