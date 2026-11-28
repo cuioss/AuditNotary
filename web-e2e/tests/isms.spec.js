@@ -541,7 +541,9 @@ test.describe('the comparison of two releases (UC-ISMS-1)', () => {
     await expect(page.getByTestId('compare-show')).toBeVisible();
     // The mock routes three pairs of this document; another pair is the validation answer of the server.
     await page.goto(compareAddress(POLICY, 'v3', 'v2'));
-    await expect(page.getByTestId('compare-refused')).toContainText('These two versions could not be compared');
+    await expect(page.getByTestId('compare-refused')).toContainText(
+      'These two versions could not be compared',
+    );
     await expectNoSeriousViolations(page, 'isms compare refused');
   });
 
@@ -563,10 +565,7 @@ test.describe('the comparison of two releases (UC-ISMS-1)', () => {
     await expect(page.getByTestId('not-found-view')).toBeVisible();
   });
 
-  test('the breadcrumb leads back to the type and to the document', async ({
-    page,
-    request,
-  }) => {
+  test('the breadcrumb leads back to the type and to the document', async ({ page, request }) => {
     await useScenario(request, 'workshop');
     await loginToCompare(page, POLICY, 'v2', 'v3');
     const crumbs = page.getByRole('navigation', { name: 'You are here' });
